@@ -1,0 +1,21 @@
+Mall1	Chunxi Road Pedestrian Street	1037074805834256385	ChengDu	成都春熙路步行街
+Mall2	Taikoo Li	1037074805834256385	ChengDu	成都太古里
+Mall3	YinTai City	1037074805834256385	ChengDu	成都银泰城
+Mall4	YinTai City	1037074805834256386	HangZhou	杭州银泰城
+Mall5	Wuhou Shrine Commercial Street	1037074805834256385	ChengDu	成都武侯祠商业街
+Mall6	Jinli Ancient Street	1037074805834256385	ChengDu	成都锦里古街
+Mall7	Wide and Narrow Alley	1037074805834256385	ChengDu	成都宽窄巷子
+Mall8	WangfujingStreet	1037074805834256387	BeiJing	北京王府井大街
+Mall9	Sanlitun Village	1037074805834256387	BeiJing	北京三里屯
+Mall10	Central Business District(CBD)	1037074805834256387	BeiJing	北京CBD
+Mall11	Taikoo Li	1037074805834256388	GuangZhou	广州太古里
+Mall12	CR Vanguard	1037074805834256389	ShenZhen	深圳万象城
+Mall13	K11	city6	ShenYang	沈阳K11
+Mall14	K11	1037074805834256391	ShangHai	上海K11
+Mall15	WanDa	1037074805834256390	ShenYang	沈阳万达
+Mall16	Joy City	1037074805834256387	BeiJing	北京大悦城
+Mall17	Joy City	1037074805834256390	ShenYang	沈阳大悦城
+Mall18	Joy City	1037074805834256391	ShangHai	上海大悦城
+Mall19	Hang Lung Plaza	1037074805834256391	ShangHai	上海恒隆广场
+Mall20	Hang Lung Plaza	1037074805834256390	ShenYang	沈阳恒隆广场
+Mall21	Hang Lung Plaza	1037074805834256392	TianJin	天津恒隆广场

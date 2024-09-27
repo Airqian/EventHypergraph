@@ -1,0 +1,18 @@
+Store1	Zara	item1	jeans	item2	dresses	item3	T-shirt	item7	down jacket	item4	scarf
+Store2	UNIQLO	item1	jeans	item5	jacket	item3	T-shirt	item7	down jacket	item6	outdoor jacket
+Store3	Nike Store	item14	peaked cap	item10	sports socks	item11	basketball shoes	item12	hoodie
+Store4	Adidas Originals	item13	sports suit	item10	sports socks	item12	hoodie
+Store5	Apple Store	item17	laptop	item15	tablet PC	item18	sports bracelet	item16	smart phone
+Store6	XiaoMi	item18	sports bracelet	item16	smart phone
+Store7	HuaWei	item18	sports bracelet	item16	smart phone	item15	tablet PC
+Store8	Tims	item19	coffee
+Store9	Luckin Coffee	item19	coffee
+Store10	COTTI	item19	coffee
+Store11	Walmart Supercenter	item23	electric cooker	item24	teacup
+Store12	Pandora	item25	dreamcatcher	item26	ring	item29	necklace
+Store13	Darry Ring	item26	ring
+Store14	Chanel	item27	perfume	item28	watched	item31	lipstick	item30	eyeshadow compact
+Store15	Guerlain	item27	perfume	item31	lipstick
+Store16	Perfect Diary	item31	lipstick	item30	eyeshadow compact	item34	cleansing water
+Store17	McDonald's	item32	hamburger	item33	chips
+Store18	KFC	item32	hamburger	item33	chips

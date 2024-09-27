@@ -1,0 +1,8 @@
+city1	ChengDu	CN
+city2	HangZhou	CN
+city3	BeiJing	CN
+city4	GuangZhou	CN
+city5	ShenZhen	CN
+city6	ShenYang	CN
+city7	ShangHai	CN
+city8	TianJin	CN

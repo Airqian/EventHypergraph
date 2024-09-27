@@ -1,0 +1,34 @@
+item1	jeans	牛仔裤
+item2	dresses	连衣裙
+item3	T-shirt	T恤
+item4	scarf	围巾
+item5	jacket	夹克
+item6	outdoor jacket	冲锋衣
+item7	down jacket	羽绒服
+item8	sweatpants	卫裤
+item9	running shoes	跑鞋
+item10	sports socks	运动袜
+item11	basketball shoes	篮球鞋
+item12	hoodie	连帽卫衣
+item13	sports suit	运动套装
+item14	peaked cap	鸭舌帽
+item15	tablet PC	平板电脑
+item16	smart phone	智能手机
+item17	laptop	笔记本电脑
+item18	sports bracelet	运动手环
+item19	coffee	咖啡
+item20	pearl Milk Tea	珍珠奶茶
+item21	fruit tea	果茶
+item22	parboiled Cheese	半熟芝士
+item23	electric cooker	电饭锅
+item24	teacup	茶杯
+item25	dreamcatcher	捕梦网
+item26	ring	钻戒
+item27	perfume	香水
+item28	watched	手表
+item29	necklace	项链
+item30	eyeshadow compact	眼影盘
+item31	lipstick	口红
+item32	hamburger	汉堡包
+item33	chips	薯条
+item34	cleansing water	卸妆水

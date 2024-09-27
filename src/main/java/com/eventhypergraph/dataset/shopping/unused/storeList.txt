@@ -1,0 +1,18 @@
+Zara	牛仔裤	连衣裙	T恤	羽绒服	围巾
+UNIQLO	牛仔裤	夹克	T恤	羽绒服	冲锋衣
+Nike Store	鸭舌帽	运动袜	篮球鞋	连帽卫衣
+Adidas Originals	运动套装	运动袜	连帽卫衣
+Apple Store	笔记本电脑	平板电脑	运动手环	智能手机
+XiaoMi	运动手环	智能手机
+HuaWei	运动手环	智能手机	平板电脑
+Tims	咖啡
+Luckin Coffee	咖啡
+COTTI	咖啡
+Walmart Supercenter	电饭锅	茶杯
+Pandora	捕梦网	钻戒	项链
+Darry Ring	钻戒
+Chanel	香水	手表	口红	眼影盘
+Guerlain	香水	口红
+Perfect Diary	口红	眼影盘	卸妆水
+McDonald's	汉堡包	薯条
+KFC	汉堡包	薯条
