@@ -1,11 +1,10 @@
 package com.eventhypergraph.encoding;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
 
 /**
- * PPBitset：属性编码位串类
+ * 属性编码位串类
  */
 public class PPBitset extends BitSet implements Comparable<PPBitset> {
     private final static int ADDRESS_BITS_PER_WORD = 5;
@@ -67,7 +66,8 @@ public class PPBitset extends BitSet implements Comparable<PPBitset> {
             throw new IndexOutOfBoundsException("bitIndex < 0: " + bitIndex);
 
         if (bitIndex >= maxBitsInUse)
-            throw new IndexOutOfBoundsException("bitIndex exceeds the valid range of bits for the bitset: " + bitIndex + " >= " + this.length());
+            throw new IndexOutOfBoundsException("bitIndex exceeds the valid range of bits for the bitset: " +
+                    bitIndex + " >= " + this.length());
 
         int wordIndex = wordIndex(bitIndex);
         words[wordIndex] |= (1 << bitIndex);
@@ -81,8 +81,18 @@ public class PPBitset extends BitSet implements Comparable<PPBitset> {
             throw new IndexOutOfBoundsException("bitIndex exceeds the valid range of bits for the bitset: " + bitIndex + " >= " + this.length());
 
         int wordIndex = wordIndex(bitIndex);
-        words[wordIndex] &= ~(1L << bitIndex);
+        words[wordIndex] &= ~(1 << bitIndex);
     }
+
+    public void clear() {
+        int bit = nextSetBit(0);
+        while (bit != -1) {
+            set(bit, false);
+
+            bit = nextSetBit(bit);
+        }
+    }
+
 
     public boolean get(int bitIndex) {
         if (bitIndex < 0)
@@ -97,8 +107,8 @@ public class PPBitset extends BitSet implements Comparable<PPBitset> {
 
     /**
      * Returns the number of bits set to {@code true} in this {@code PPBitSet}.
-     * Hamming distance
-     * @return
+     *
+     * @return Hamming distance
      */
     public int cardinality() {
         int sum = 0;
@@ -196,7 +206,7 @@ public class PPBitset extends BitSet implements Comparable<PPBitset> {
     }
 
     /**
-     * if maxBitsInUse = 64 and bitset.set(63,true) then bitset.nextClearBit(63)=64
+     * if maxBitsInUse = 64 and bitset.set(63,true) then bitset.nextClearBit(63) = 64
      */
     public int nextClearBit(int fromIndex) {
         if (fromIndex < 0)
@@ -237,28 +247,6 @@ public class PPBitset extends BitSet implements Comparable<PPBitset> {
         }
 
         return true;
-    }
-
-    public String toString() {
-        StringBuilder builder = new StringBuilder();
-        builder.append("{");
-        int i = nextSetBit(0);
-
-        if (i != -1) {
-            builder.append(i);
-            while (true) {
-                if (++i < 0) break;
-                if ((i = nextSetBit(i)) < 0) break;
-                int endOfRun = nextClearBit(i);
-
-                do {
-                    builder.append(", ").append(i);
-                }
-                while (endOfRun != -1 && ++i != endOfRun );
-            }
-        }
-        builder.append("}");
-        return builder.toString();
     }
 
     @Override

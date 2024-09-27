@@ -1,9 +1,6 @@
 package com.eventhypergraph.indextree.treeNode;
 
-import com.eventhypergraph.encoding.util.Pair;
-import com.eventhypergraph.indextree.hyperedge.DataHyperedge;
-import com.eventhypergraph.indextree.hyperedge.DerivedHyperedge;
-import com.eventhypergraph.indextree.treeNode.TreeNode;
+import com.eventhypergraph.indextree.hyperedge.Hyperedge;
 
 import java.util.*;
 
@@ -12,19 +9,14 @@ import java.util.*;
  * 非叶子节点在容量变满时也要进行节点分裂，同理也可以保存两条权重值最大的超边
  */
 public class InternalTreeNode extends TreeNode {
-    private List<DerivedHyperedge> derivedHyperedges;
+    private List<Hyperedge> derivedHyperedges;
 
     private List<TreeNode> childNodes;
 
     /**
-     * 键是超边id，值是子节点窗口id
+     * TODO 感觉要直接保存超边和节点，而不是id，此时就要用到TreeNode了
      */
-    private Map<Long, Long> edgeToNode;
-
-    // 保存用于节点分裂使用的两个seed hyperedge
-    List<Pair<DataHyperedge, Integer>> seedDataHyperedges;
-
-    private int maxCardinality;
+    private Map<Long, TreeNode> edgeToNode;
 
     public InternalTreeNode(int capacity) {
         super(capacity);
@@ -40,13 +32,14 @@ public class InternalTreeNode extends TreeNode {
 
     // 在非叶节点中添加超边和子节点（需同时添加）
     // TODO  中间节点globalbits的更新
-    public void addChild(DerivedHyperedge hyperedge, TreeNode node) {
+    public void addChildNode(Hyperedge hyperedge, TreeNode node) {
         check();
 
         if (!isFull()) {
+            // 添加子节点，建立超边到子节点的映射
             derivedHyperedges.add(hyperedge);
             childNodes.add(node);
-            edgeToNode.put(hyperedge.getId(), node.getId());
+            edgeToNode.put(hyperedge.getId(), node);
 
             // 更新节点的时间范围
             if (getStartTime() > node.getStartTime())
@@ -54,11 +47,16 @@ public class InternalTreeNode extends TreeNode {
             if (getEndTime() < node.getEndTime())
                 setEndTime(node.getEndTime());
 
+            // 更新本seedHyperedge、cardinality以及globalbits
             // updateCardinality(dataHyperedge);
             // updateGlobalBits(dataHyperedge);
         } else {
             // TODO 节点分裂
         }
+    }
+
+    public TreeNode getNodeByEdgeID(long id) {
+        return this.edgeToNode.get(id);
     }
 
     private void check() {
@@ -76,6 +74,28 @@ public class InternalTreeNode extends TreeNode {
     }
 
 
+    public List<Hyperedge> getDerivedHyperedges() {
+        return derivedHyperedges;
+    }
 
+    public void setDerivedHyperedges(List<Hyperedge> derivedHyperedges) {
+        this.derivedHyperedges = derivedHyperedges;
+    }
+
+    public List<TreeNode> getChildNodes() {
+        return childNodes;
+    }
+
+    public void setChildNodes(List<TreeNode> childNodes) {
+        this.childNodes = childNodes;
+    }
+
+    public Map<Long, TreeNode> getEdgeToNode() {
+        return edgeToNode;
+    }
+
+    public void setEdgeToNode(Map<Long, TreeNode> edgeToNode) {
+        this.edgeToNode = edgeToNode;
+    }
 
 }

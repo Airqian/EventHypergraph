@@ -10,7 +10,7 @@ public class PPBitesetTest {
         PPBitset bitset3 = new PPBitset(21);
 
         bitset1.set(2, true);
-        bitset1.set(10,true);
+        bitset1.set(20,true);
 
         bitset2.set(2, true);
         bitset2.set(3, true);
@@ -137,6 +137,9 @@ public class PPBitesetTest {
         assert (bitset.nextClearBit(63) == 64);
         assert (bitset.nextClearBit(64) == -1);
         assert (bitset.nextClearBit(65) == -1);
+
+        bitset.clear();
+        System.out.println(bitset.toString());
     }
 
     @Test

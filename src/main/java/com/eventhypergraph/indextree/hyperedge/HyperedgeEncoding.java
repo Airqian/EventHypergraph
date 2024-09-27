@@ -1,4 +1,4 @@
-package com.eventhypergraph.indextree;
+package com.eventhypergraph.indextree.hyperedge;
 
 import com.eventhypergraph.encoding.PPBitset;
 import com.eventhypergraph.encoding.PropertyEncodingConstructor;

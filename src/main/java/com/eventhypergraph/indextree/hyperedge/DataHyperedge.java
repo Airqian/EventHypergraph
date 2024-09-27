@@ -2,8 +2,6 @@ package com.eventhypergraph.indextree.hyperedge;
 
 
 import com.eventhypergraph.encoding.PPBitset;
-import com.eventhypergraph.encoding.util.Triple;
-import com.eventhypergraph.indextree.HyperedgeEncoding;
 import com.sun.istack.internal.NotNull;
 
 import java.util.ArrayList;
@@ -37,24 +35,32 @@ public class DataHyperedge extends Hyperedge implements Comparable<DataHyperedge
 
 
     public DataHyperedge(long id, int eventTypeId, long eventTime) {
-        super(id, eventTypeId);
+        super(eventTypeId);
         this.eventTime = eventTime;
         vertexIds = new ArrayList<>();
 
     }
 
-    public DataHyperedge(long id, int eventTypeId, long eventTime, int numOfVertex, int numOfProperty,
+    public DataHyperedge(int eventTypeId, long eventTime, int numOfVertex, int numOfProperty,
                          List<Integer> vertexToPropOffset) {
-        super(id, eventTypeId, numOfVertex, numOfProperty, vertexToPropOffset);
+        super(eventTypeId, numOfVertex, numOfProperty, vertexToPropOffset);
 
         this.eventTime = eventTime;
         vertexIds = new ArrayList<>();
     }
 
-    /**
-     * TODO：属性到顶点列表的初始化；
-     * TODO：根据顶点类型String查找对应的属性编码在查询的时候肯定要用到，那这里在哪里实现呢
-     */
+    // 计算与给定超边之间的权重增量
+    public double getWeightIncrease(@NotNull DataHyperedge dataHyperedge) {
+        double res = 0.0;
+        int len = dataHyperedge.getEncodingLength();
+
+        for (int i = 0; i < dataHyperedge.getEncoding().size(); i++) {
+            PPBitset tmp = this.getEncodingAt(i).or(dataHyperedge.getEncodingAt(i));
+            double diff = (tmp.cardinality() - dataHyperedge.getEncodingAt(i).cardinality()) * 1.0;
+            res += (tmp.length() * 1.0) / len * diff;
+        }
+        return res;
+    }
 //
     /**
      * 两条超边的比较规则决定超边在时间窗口（叶子节点）中的排列顺序

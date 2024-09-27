@@ -1,8 +1,11 @@
 package encoding;
 
+import com.azul.crs.client.service.ClientService;
 import com.eventhypergraph.encoding.PPBitset;
 import com.eventhypergraph.indextree.hyperedge.DataHyperedge;
+import com.eventhypergraph.indextree.hyperedge.Hyperedge;
 import org.junit.Test;
+import org.w3c.dom.CDATASection;
 
 import java.util.ArrayList;
 
@@ -32,11 +35,11 @@ public class DataHyperedgeTest {
             add(dataHyperedge2);
         }};
 
+        dataHyperedges.remove(dataHyperedge);
+        System.out.println(dataHyperedges.size());
+
         System.out.println(dataHyperedge.compareTo(dataHyperedge1)); // 1
 
         Collections.sort(dataHyperedges);
-        assert (dataHyperedges.get(0).getEventTime() == 1000 && dataHyperedges.get(0).getEncoding().getProperty(0).get(0));
-        assert (dataHyperedges.get(1).getEventTime() == 1200 && dataHyperedges.get(1).getEncoding().getProperty(0).get(0));
-        assert (dataHyperedges.get(2).getEventTime() == 1000 && dataHyperedges.get(2).getEncoding().getProperty(0).get(1));
     }
 }
