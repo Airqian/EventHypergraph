@@ -1,6 +1,7 @@
 package com.eventhypergraph.indextree.treeNode;
 
 import com.eventhypergraph.encoding.Exception.TimeOutOfBoundException;
+import com.eventhypergraph.encoding.PPBitset;
 import com.eventhypergraph.encoding.util.Pair;
 import com.eventhypergraph.indextree.hyperedge.DataHyperedge;
 import com.eventhypergraph.indextree.hyperedge.Hyperedge;
@@ -9,6 +10,7 @@ import com.sun.istack.internal.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.logging.SimpleFormatter;
 
 /**
  * - 叶节点存储真实的事件数据超边，每条数据超边都有一个指向超边对象的指针，目前表示为Hyperedge的Id
@@ -23,8 +25,13 @@ public class LeafTreeNode extends TreeNode {
     // 当和DerivedHyperedge行为没啥太大的差别时再统一为Hyperedge
     private List<DataHyperedge> dataHyperedges;
 
-    public LeafTreeNode(long startTime, long endTime, int capacity) {
-        super(startTime, endTime, capacity);
+    public LeafTreeNode(int capacity, int numOfVertex, int maxPropertyNum, int[] vertexToPropOffset, int[] propEncodingLength) {
+        super(capacity, numOfVertex, maxPropertyNum, vertexToPropOffset, propEncodingLength);
+        dataHyperedges = new ArrayList<>();
+    }
+
+    public LeafTreeNode(long startTime, long endTime, int capacity, int numOfVertex, int maxPropertyNum, int[] vertexToPropOffset,  int[] propEncodingLength) {
+        super(startTime, endTime, capacity, numOfVertex, maxPropertyNum, vertexToPropOffset, propEncodingLength);
 
         dataHyperedges = new ArrayList<>();
     }
@@ -36,7 +43,7 @@ public class LeafTreeNode extends TreeNode {
      * 在构造索引树时，我们应首先获取相同主体事件的最早和最晚时间，根据这两个时间切分时间窗口，以尽量平均每个时间窗口含有的编码数。
      * 整体的逻辑是，先看该时间范围内有多少个不同的主体属性，对这些主体属性进行分组
      *
-     * @param dataHyperedge 如果参数的类型设置成了 Hyperedge，要进行类校验
+     * @param dataHyperedge
      */
     public boolean addHyperedge(@NotNull DataHyperedge dataHyperedge) {
         if (dataHyperedge.getEventTime() < getStartTime() || dataHyperedge.getEventTime() > getEndTime())
@@ -71,8 +78,9 @@ public class LeafTreeNode extends TreeNode {
                     getSeedHyperedges().set(1, new Pair(dataHyperedge, curCardinality));
                 }
             }
+            setMinCardinality(Math.min(getSeedHyperedges().get(0).getSecond(), getSeedHyperedges().get(1).getSecond()));
         }
-        setMinCardinality(Math.min(getSeedHyperedges().get(0).getSecond(), getSeedHyperedges().get(1).getSecond()));
+
     }
 
     public void addHyperedge(@NotNull List<DataHyperedge> dataHyperedges) {
@@ -130,8 +138,6 @@ public class LeafTreeNode extends TreeNode {
         }
     }
 
-
-
     public List<DataHyperedge> getHyperedges() {
         return dataHyperedges;
     }
@@ -146,6 +152,20 @@ public class LeafTreeNode extends TreeNode {
 
     public int size() {
         return this.dataHyperedges.size();
+    }
+
+    public void print() {
+        printTimeRange();
+        printTopHyperedge();
+        printGlobalBits();
+        printEdges();
+        System.out.println();
+    }
+
+    public void printEdges() {
+        for (Hyperedge hyperedge : dataHyperedges) {
+            hyperedge.printEncoding();
+        }
     }
 
     public void clear() {

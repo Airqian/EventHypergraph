@@ -8,8 +8,11 @@ public class DataSetInfo {
     // 数据集中的事件总数
     private int eventsNum;
 
-    // 数据集中的所有事件，按主体属性进行了分组，分析数据的时候还需要对时间进行顺序排序
-    private HashMap<Long, List<String>> events;
+    // 数据集中的主体数
+    private int subjectsNum;
+
+    // 数据集中的所有事件，先按时间段再按属性主体进行组织
+    private EventOrganizerSortByTime organizer;
 
     // 数据集中事件发生的最大时间
     private long globalMinTime;
@@ -20,14 +23,6 @@ public class DataSetInfo {
     private int monthDiff;
 
     public DataSetInfo(){}
-
-    public DataSetInfo(int eventsNum, long globalMinTime, long globalMaxTime, int monthDiff, HashMap<Long, List<String>> events) {
-        this.eventsNum = eventsNum;
-        this.globalMinTime = globalMinTime;
-        this.globalMaxTime = globalMaxTime;
-        this.monthDiff = monthDiff;
-        this.events = events;
-    }
 
     public int getEventsNum() {
         return eventsNum;
@@ -53,12 +48,12 @@ public class DataSetInfo {
         this.globalMaxTime = globalMaxTime;
     }
 
-    public HashMap<Long, List<String>> getEvents() {
-        return events;
+    public EventOrganizerSortByTime getOrganizer() {
+        return organizer;
     }
 
-    public void setEvents(HashMap<Long, List<String>> events) {
-        this.events = events;
+    public void setOrganizer(EventOrganizerSortByTime organizer) {
+        this.organizer = organizer;
     }
 
     public int getMonthDiff() {
@@ -67,5 +62,13 @@ public class DataSetInfo {
 
     public void setMonthDiff(int monthDiff) {
         this.monthDiff = monthDiff;
+    }
+
+    public int getSubjectsNum() {
+        return subjectsNum;
+    }
+
+    public void setSubjectsNum(int subjectsNum) {
+        this.subjectsNum = subjectsNum;
     }
 }

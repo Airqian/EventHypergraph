@@ -22,7 +22,7 @@ public class DataBuilder {
         String startTime = "2019-03-01 00:00:00";
         String endTime = "2019-12-31 23:59:59";
 
-        String shoppingEventFile = SHOPPING_EVENT_DATA_FILE_PATH;
+        String shoppingEventFile = SHOPPIONG_EVENT_EXPERIMENT_FILE_PATH;
         BufferedWriter writer;
 
         long id = 1037074805834256618l;
@@ -31,7 +31,7 @@ public class DataBuilder {
             writer = new BufferedWriter(new FileWriter(shoppingEventFile));
 
             // 现对每个用户mock一个购物事件
-            for (int i = 0; i < 500; i++) {
+            for (int i = 0; i < 40; i++) {
                 StringBuilder builder = new StringBuilder();
                 builder.append((id + i) + "\t");  // 事件 id
                 builder.append(users.get((int) (Math.random() * users.size())) + "\t"); // 用户 id
@@ -529,7 +529,7 @@ public class DataBuilder {
 
     // 得到所有的用户用于 mock 购物事件
     public ArrayList<String> getAllUserIds() {
-        String userDataFile = USER_DATA_FILE_PATH;
+        String userDataFile = USER_DATA_EXPERIMENT_PATH;
         BufferedReader bufferedReader;
         ArrayList<String> users = new ArrayList<>();
 

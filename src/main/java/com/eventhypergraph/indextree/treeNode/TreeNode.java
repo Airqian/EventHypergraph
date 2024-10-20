@@ -1,14 +1,14 @@
 package com.eventhypergraph.indextree.treeNode;
 
+import com.eventhypergraph.encoding.PPBitset;
 import com.eventhypergraph.encoding.util.Pair;
 import com.eventhypergraph.indextree.hyperedge.Hyperedge;
 import com.eventhypergraph.indextree.util.IDGenerator;
 import com.sun.istack.internal.NotNull;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import javax.crypto.spec.PSource;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 /**
  * 树节点父类，定义了时间范围、节点容量等公共字段
@@ -43,42 +43,58 @@ public class TreeNode {
 
     // 它记录该节点中所有超边属性编码上的位为1的情况
     // TODO 之后可以用来优化索引查询过程
-    private List<Set<Integer>> globalbits;
+    private List<Set<Integer>> globalbits; // 用途和 topHyperedge 重了
+
+    private Hyperedge topHyperedge;
 
     public TreeNode() {}
 
-    public TreeNode(int capacity) {
+    public TreeNode(int capacity, int numOfVertex, int maxPropertyNum, int[] vertexToPropOffset, int[] propEncodingLength) {
+        if (capacity <= 0)
+            throw new IllegalArgumentException(String.format("The capacity cannot be 0. capacity = %d", capacity));
+
+        id = IDGenerator.generateNodeId();
         this.capacity = capacity;
+        this.globalbits = new ArrayList<>();
+        this.seedHyperedges = new ArrayList<>(2);
+        this.minCardinality = 1000;
+
+        startTime = Long.MAX_VALUE;
+        endTime = Long.MIN_VALUE;
+
+        this.initialGlobalBits(maxPropertyNum);
+        this.initialTopHyperedge(numOfVertex, maxPropertyNum, vertexToPropOffset, propEncodingLength);
     }
 
     // 叶节点和中间节点的容量可以用全局静态常量去设置
-    public TreeNode(long startTime, long endTime,int capacity) {
-        if (capacity <= 0)
-            throw new IllegalArgumentException(String.format("The capacity cannot be 0. capacity = %d", capacity));
+    public TreeNode(long startTime, long endTime,int capacity, int numOfVertex, int maxPropertyNum, int[] vertexToPropOffset, int[] propEncodingLength) {
+        this(capacity, numOfVertex, maxPropertyNum, vertexToPropOffset, propEncodingLength);
 
         if (startTime >= endTime)
             throw new IllegalArgumentException(String.format("endTime = %d cannot be less than startTime = %d.", endTime, startTime));
 
-        id = IDGenerator.generateNodeId();
-        this.capacity = capacity;
         this.startTime = startTime;
         this.endTime = endTime;
-        this.globalbits = new ArrayList<>();
-        this.seedHyperedges = new ArrayList<>(2);
-        this.minCardinality = 1000;
+
+        this.initialGlobalBits(maxPropertyNum);
+        this.initialTopHyperedge(numOfVertex, maxPropertyNum, vertexToPropOffset, propEncodingLength);
     }
 
-    // 用hyperedge更新本节点globalbits
+    // 用 hyperedge 更新本节点的 globalbits 和topHyperedge
     public void updateGlobalBitsLocal(@NotNull Hyperedge hyperedge) {
-        for (int i = 0; i < hyperedge.getEncoding().size(); i++) {
+        for (int i = 0; i < hyperedge.getEncoding().size(); i++) { // 对超边中的每个属性编码进行操作
             if (globalbits.get(i) == null)
                 globalbits.set(i, new HashSet<>());
 
             String bitStr = hyperedge.getEncoding().getProperty(i).toString();
             if (bitStr.length() > 2) {
-                String[] bits = bitStr.substring(1).split(",");
-                for (int j = 0; j < bits.length; j++)
-                    globalbits.get(i).add(Integer.valueOf(bits[j]));
+                bitStr = bitStr.replace(" ","");
+                String[] bitss = bitStr.substring(1, bitStr.length()-1).split(",");
+                for (int j = 0; j < bitss.length; j++) {
+                    int bit = Integer.valueOf(bitss[j]);
+                    globalbits.get(i).add(bit);
+                    topHyperedge.getEncoding().getProperty(i).set(bit, true);
+                }
             }
         }
     }
@@ -93,6 +109,47 @@ public class TreeNode {
             pEdge = pNode.getParentEdge();
             pNode = pNode.getParentNode();
         }
+    }
+
+    // 在创建窗口之后初始化 globalbits
+    public void initialGlobalBits(int maxPropertyNum) {
+        for (int i = 0; i < maxPropertyNum; i++) {
+            globalbits.add(new HashSet<>());
+        }
+    }
+
+    public void initialTopHyperedge(int numOfVertex, int maxPropertyNum, int[] vertexToPropOffset, int[] propEncodingLength) {
+        this.topHyperedge = new Hyperedge(numOfVertex, maxPropertyNum, vertexToPropOffset);
+        for (int i = 0; i < maxPropertyNum; i++) {
+            topHyperedge.addEncoding(new PPBitset(propEncodingLength[i]));
+        }
+    }
+
+    // 由子类实现
+    public void print(){}
+
+    public void printTimeRange() {
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        System.out.println("start time: " + format.format(new Date(startTime)) + ", end time: " + format.format(new Date(endTime)));
+    }
+
+    public void printTopHyperedge() {
+        System.out.print("TopHyperedge: ");
+        this.topHyperedge.printEncoding();
+    }
+
+    public void printGlobalBits() {
+        StringBuilder builder = new StringBuilder();
+        builder.append("GlobalBits: ");
+        for (Set<Integer> set : this.getGlobalbits()) {
+            builder.append("{");
+            for (int bit : set) {
+                builder.append(bit + ", ");
+            }
+            builder.delete(builder.length() - 2, builder.length());
+            builder.append("} ");
+        }
+        System.out.println(builder);
     }
 
     public void setStartTime(Long startTime) {
@@ -163,5 +220,7 @@ public class TreeNode {
         this.minCardinality = minCardinality;
     }
 
-
+    public Hyperedge getTopHyperedge() {
+        return topHyperedge;
+    }
 }

@@ -20,30 +20,32 @@ public class DataHyperedge extends Hyperedge implements Comparable<DataHyperedge
 
     // HACK: 用来测试排序功能的，没有实际意义
     public DataHyperedge(long eventTime) {
+        super(1, 1, 1, new int[]{1});
         this.eventTime = eventTime;
         vertexIds = new ArrayList<>();
         setEncoding(new HyperedgeEncoding(100, 10));
     }
+//
+//    // HACK: 用来测试排序功能的，没有实际意义
+//    public DataHyperedge(long eventTime, PPBitset bitset) {
+//        this.eventTime = eventTime;
+//        vertexIds = new ArrayList<>();
+//        setEncoding(new HyperedgeEncoding(100, 10));
+//        getEncoding().addEncoding(bitset);
+//    }
 
-    // HACK: 用来测试排序功能的，没有实际意义
-    public DataHyperedge(long eventTime, PPBitset bitset) {
+
+    public DataHyperedge(long eventTime, int numOfVertex, int maxPropertyNum,
+                         int[] vertexToPropOffset) {
+        super(numOfVertex, maxPropertyNum, vertexToPropOffset);
+
         this.eventTime = eventTime;
         vertexIds = new ArrayList<>();
-        setEncoding(new HyperedgeEncoding(100, 10));
-        getEncoding().addEncoding(bitset);
     }
 
-
-    public DataHyperedge(long id, int eventTypeId, long eventTime) {
-        super(eventTypeId);
-        this.eventTime = eventTime;
-        vertexIds = new ArrayList<>();
-
-    }
-
-    public DataHyperedge(int eventTypeId, long eventTime, int numOfVertex, int numOfProperty,
-                         List<Integer> vertexToPropOffset) {
-        super(eventTypeId, numOfVertex, numOfProperty, vertexToPropOffset);
+    public DataHyperedge(int eventTypeId, long eventTime, int numOfVertex, int maxPropertyNum,
+                         int[] vertexToPropOffset) {
+        super(eventTypeId, numOfVertex, maxPropertyNum, vertexToPropOffset);
 
         this.eventTime = eventTime;
         vertexIds = new ArrayList<>();

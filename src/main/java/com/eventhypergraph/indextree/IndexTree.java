@@ -1,56 +1,182 @@
 package com.eventhypergraph.indextree;
 
-import com.eventhypergraph.encoding.util.DataAnalyzer;
+import com.eventhypergraph.encoding.PPBitset;
+import com.eventhypergraph.encoding.PropertyEncodingConstructor;
+import com.eventhypergraph.encoding.util.PeriodType;
+import com.eventhypergraph.indextree.util.DataAnalyzer;
 import com.eventhypergraph.indextree.hyperedge.DataHyperedge;
 import com.eventhypergraph.indextree.hyperedge.Hyperedge;
 import com.eventhypergraph.indextree.treeNode.InternalTreeNode;
 import com.eventhypergraph.indextree.treeNode.LeafTreeNode;
 import com.eventhypergraph.indextree.treeNode.TreeNode;
 import com.eventhypergraph.indextree.util.DataSetInfo;
+import com.eventhypergraph.indextree.util.Event;
 import com.sun.istack.internal.NotNull;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
+import static com.eventhypergraph.dataset.FilePathConstants.SHOPPIONG_EVENT_EXPERIMENT_FILE_PATH;
 public class IndexTree {
     private TreeNode root;
 
+    private int windowSize;
+
+    int numOfVertex;
+
+    // 该索引树超边中包含的最大属性数
+    private int maxPropertyNum;
+
+    /**
+     * 元数据：
+     * Assuming the definition of the User entity (with properties userName, phoneNumber, IDCard) and
+     * the AOI entity (with properties AOIName, city), the vertexToPropOffset numerical list is [4, 6].
+     * There are a total of 6 properties, with the User's property set being [1, 4) and the AOI's property set being [4, 6).
+     */
+    private int[] vertexToPropOffset;
+
+    private int[] propEncodingLength;
+
     private int layer;
 
+    public IndexTree(int windowSize, int numOfVertex, int maxPropertyNum, int[] propEncodingLength, int[] vertexToPropOffset) {
+        if (maxPropertyNum != propEncodingLength.length)
+            throw new IllegalArgumentException("属性个数与编码长度列表不匹配");
+
+        this.windowSize = windowSize;
+        this.propEncodingLength = propEncodingLength;
+        this.numOfVertex = numOfVertex;
+        this.maxPropertyNum = maxPropertyNum;
+        this.vertexToPropOffset = vertexToPropOffset;
+    }
+
     public static void main(String[] args) {
-        /**
-         * 读取数据集获得元数据信息和所有事件记录
-         * events 所有事件记录行
-         * subjectMin 所有主体中最少的事件数量，用来决策叶节点的大小
-         * subjectMax 所有主体中最多的事件数量，用来决策叶节点的大小
-         * globalMinTime 所有事件记录中最早的事件时间
-         * globalMaxTime 所有事件记录中最晚的事件时间
-         * monthCount 最早时间和最晚时间之间相差的月份数
-         */
+        int windowSize = 10;
+        int numOfVertex = 4;
+        int maxPropertyNum = 4;
+        int[] propEncodingLength = new int[] {15, 15, 15, 15};
+        int[] dataSetPropIndex = new int[]{1,2,3,4};
+        int[] vertexToPropOffset = new int[]{1, 2, 3, 4};
+        int hashFuncCount = 3;
 
-        String filePath = "/Users/wqian/Coding/Java/EventHypergraph/src/main/java/com/eventhypergraph/dataset/shopping/shoppingEvent1.txt";
-        DataAnalyzer dataAnalyzer = new DataAnalyzer();
-
-        DataSetInfo dataSetInfo = dataAnalyzer.readFile(filePath);
-        HashMap<Long, List<String>> events = dataSetInfo.getEvents();
-        int eventCounts = dataSetInfo.getEventsNum();
-        long globalMinTime = dataSetInfo.getGlobalMinTime();
-        long globalMaxTime = dataSetInfo.getGlobalMaxTime();
-        int monthDiff = dataSetInfo.getMonthDiff();
-
-        int monthAverage = (int) Math.floor(eventCounts * 1.0 / monthDiff);
+        IndexTree indexTree = new IndexTree(windowSize, numOfVertex, maxPropertyNum, propEncodingLength, vertexToPropOffset);
+        indexTree.buildTree(SHOPPIONG_EVENT_EXPERIMENT_FILE_PATH, 1, 5, PeriodType.MONTH, dataSetPropIndex, hashFuncCount);
     }
 
 
-    public static void buildTree(String filePath) {
+    /**
+     * 给定数据集构建索引树
+     * @param filePath 文件路径
+     * @param userIndex 主体属性下标
+     * @param timeIndex 时间属性下标
+     * @param periodType 时间跨度
+     * @param dataSetPropIndex 属性在数据集中的下标，默认主体属性在第一位，构建索引时按照该下标顺序拼接编码
+     * @param hashFuncCount 所使用的哈希函数个数
+     */
+    public void buildTree(String filePath, int userIndex, int timeIndex, PeriodType periodType, int[] dataSetPropIndex, int hashFuncCount) {
         // 根据指定文件读取获得事件记录和元数据
+        DataSetInfo dataSetInfo = DataAnalyzer.readFile(filePath, userIndex, timeIndex, periodType);
+        dataSetInfo.getOrganizer().printAllEvents();
 
+        // 根据读取到的数据集统计信息构建索引树
+        // 观察到，如果为了保证一个叶子节点内只有一个主体，那么可能会导致树的叶子层非常稀疏
+        // 因此，树的构建原则是时间优先，在将编码插入叶子节点时会按照主体属性和时间顺序进行相对排序，保证主体属性相同的编码放置在一块
+        Map<String, Map<Long, List<Event>>> eventMap = dataSetInfo.getOrganizer().getEventMap();
+        Queue<TreeNode> treeNodes = new ArrayDeque<>();
+        LeafTreeNode leafTreeNode = new LeafTreeNode(windowSize, numOfVertex, maxPropertyNum,
+                vertexToPropOffset, propEncodingLength);
+        long minTime = Long.MAX_VALUE;
+        long maxTime = Long.MIN_VALUE;
 
-        // 对数据进行分析之后，主体的个数和其发生的事件数相比总记录数来说实在是太少了，因此目前选择的策略直接根据总记录数和时间跨度来
+        int size = 0;
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
+        // 构建叶子节点
+        for (Map.Entry<String, Map<Long, List<Event>>> periodEntry : eventMap.entrySet()) {
+            for (Map.Entry<Long, List<Event>> userEntry : periodEntry.getValue().entrySet()) {
+                for (Event event : userEntry.getValue()) {
+                    size++;
+                    // 对事件进行编码（编码信息保存在树上不是在树节点上）
+                    String eventDetail = event.getEventDetail();
+//                    System.out.println(eventDetail);
+                    String[] items = eventDetail.split("\\t");
+                    try {
+                        Date date  = format.parse(items[timeIndex]);
+                        long time = date.getTime();
+                        DataHyperedge hyperedge = new DataHyperedge(time, numOfVertex, maxPropertyNum, propEncodingLength);
+                        minTime = Math.min(minTime, time);  // 更新窗口时间
+                        maxTime = Math.max(maxTime, time);
+                        leafTreeNode.setStartTime(minTime);
+                        leafTreeNode.setEndTime(maxTime);
 
-//        try(BufferedInputStream )
+                        for (int i = 0, j = 0; i < dataSetPropIndex.length; i++, j++) {
+                            PPBitset ppBitset = PropertyEncodingConstructor.encoding(items[dataSetPropIndex[i]], propEncodingLength[j], hashFuncCount);
+                            hyperedge.addEncoding(ppBitset);
+                        }
+                        leafTreeNode.addHyperedge(hyperedge);
+
+                        // 当窗口达到了最大容量则新建下一个窗口，这个容量可以使用类似负载因子的优化方法，避免下一次插入直接造成节点分裂
+                        if (size == windowSize) {
+                            treeNodes.offer(leafTreeNode);
+                            leafTreeNode = new LeafTreeNode(windowSize, numOfVertex, maxPropertyNum, vertexToPropOffset, propEncodingLength);
+                            minTime = Long.MAX_VALUE;
+                            maxTime = Long.MIN_VALUE;
+
+                            size = 0;
+                        }
+                    } catch (ParseException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            }
+        }
+
+        // 从叶节点层自底向上构建索引树
+        Queue<TreeNode> treeNodes2 = new ArrayDeque<>();
+        int k = 2; // 每层子节点的最大个数
+        while (!treeNodes.isEmpty()) {
+            if (treeNodes.size() == 1) {
+                TreeNode node = treeNodes.poll();
+                if (node instanceof InternalTreeNode) {
+                    this.root = node;
+                    break;
+                }
+            }
+
+            InternalTreeNode parentNode = new InternalTreeNode(windowSize, numOfVertex, maxPropertyNum, vertexToPropOffset, propEncodingLength);
+            // 取出对应数量的子节点构建父节点(后续需要算法优化，子节点的数量有范围)
+            for (int i = 1; i <= k; i++) {
+                TreeNode node = treeNodes.poll();
+                Hyperedge parentEdge = node.getTopHyperedge().clone();
+                parentNode.addChildNode(parentEdge, node);
+            }
+            treeNodes2.offer(parentNode);
+
+            if (treeNodes.isEmpty()) {
+                treeNodes = treeNodes2;
+                treeNodes2 = new ArrayDeque<>();
+            }
+        }
+
+        printTree();
     }
 
+    // 从根节点开始打印树
+    public void printTree() {
+        Queue<TreeNode> treeNodes = new ArrayDeque<>();
+        treeNodes.offer(this.root);
+
+        while (!treeNodes.isEmpty()) {
+            TreeNode node = treeNodes.poll();
+            node.print();
+
+            if (node instanceof InternalTreeNode) {
+                for (TreeNode child : ((InternalTreeNode) node).getChildNodes())
+                    treeNodes.offer(child);
+            }
+        }
+    }
 
     // 从根节点开始找到符合条件的叶子节点
     private List<TreeNode> findLeafTreeNode(@NotNull Hyperedge hyperedge) {
@@ -100,9 +226,9 @@ public class IndexTree {
         // 1. 创建新的叶节点以及叶节点在父节点中的DerivedHyperedge
         InternalTreeNode parentNode = curleafNode.getParentNode();
         LeafTreeNode newLeafNode = new LeafTreeNode(curleafNode.getStartTime(), curleafNode.getEndTime(), // 时间容量和curleafNode一样
-                curleafNode.getCapacity());
+                curleafNode.getCapacity(), numOfVertex, maxPropertyNum, vertexToPropOffset, propEncodingLength);
         Hyperedge newParentEdge = new Hyperedge(dataHyperedge.getEventTypeId(), dataHyperedge.getNumOfVertex(),
-                dataHyperedge.getNumOfProperty(), dataHyperedge.getVertexToPropOffset());
+                dataHyperedge.getMaxPropertyNum(), dataHyperedge.getVertexToPropOffset());
 
         // 2. 获得两条seed edge（另原节点中的seed与新插入超边进行比较）以及要进行分配的所有超边
         curleafNode.updateSeedAndCardinality(dataHyperedge);
@@ -126,7 +252,7 @@ public class IndexTree {
         // TODO：此处逻辑再看看，理论上只要父节点往上更新就可以
         // 5. 根据新插入的超边更新两个子节点的父超边
         parentNode.updateParentEdgeByEdge(dataHyperedge);
-//        newLeafNode.updateParentEdgeByEdge(dataHyperedge);
+        // newLeafNode.updateParentEdgeByEdge(dataHyperedge);
 
         // 6. 更新父节点的globalbits，并将新添加的属性信息在树中向上传播（继续用dataHyperedge往上更新即可，并且暂时不考虑父节点的seed hyperedge变化）
         if (parentNode != null) {
@@ -182,6 +308,10 @@ public class IndexTree {
         }
 
         return edges;
+    }
+
+    public TreeNode getRoot() {
+        return this.root;
     }
 }
 

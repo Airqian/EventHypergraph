@@ -18,12 +18,18 @@ public class InternalTreeNode extends TreeNode {
      */
     private Map<Long, TreeNode> edgeToNode;
 
-    public InternalTreeNode(int capacity) {
-        super(capacity);
+    public InternalTreeNode(int capacity, int numOfVertex, int maxPropertyNum, int[] vertexToPropOffsetint,
+                            int[] propEncodingLength) {
+        super(capacity, numOfVertex, maxPropertyNum, vertexToPropOffsetint, propEncodingLength);
+
+        derivedHyperedges = new ArrayList<>();
+        childNodes = new ArrayList<>();
+        edgeToNode = new HashMap<>();
     }
 
-    public InternalTreeNode(long startTime, long endTime, int capacity) {
-        super(startTime, endTime, capacity);
+    public InternalTreeNode(long startTime, long endTime, int capacity, int numOfVertex, int maxPropertyNum,
+                            int[] vertexToPropOffsetint, int[] propEncodingLength) {
+        super(startTime, endTime, capacity, numOfVertex, maxPropertyNum, vertexToPropOffsetint, propEncodingLength);
 
         derivedHyperedges = new ArrayList<>();
         childNodes = new ArrayList<>();
@@ -49,9 +55,23 @@ public class InternalTreeNode extends TreeNode {
 
             // 更新本seedHyperedge、cardinality以及globalbits
             // updateCardinality(dataHyperedge);
-            // updateGlobalBits(dataHyperedge);
+            updateGlobalBitsLocal(hyperedge);
         } else {
             // TODO 节点分裂
+        }
+    }
+
+    public void print() {
+        printTimeRange();
+        printTopHyperedge();
+        printGlobalBits();
+        printEdges();
+        System.out.println();
+    }
+
+    public void printEdges() {
+        for (Hyperedge hyperedge : derivedHyperedges) {
+            hyperedge.printEncoding();
         }
     }
 

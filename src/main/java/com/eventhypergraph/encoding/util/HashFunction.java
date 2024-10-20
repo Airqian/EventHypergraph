@@ -12,7 +12,7 @@ public class HashFunction {
     public static void main(String[] args) {
         int length = 4;
         getBitOfOne(length, "香蕉");
-//        getBitOfOne(length, "葛王");
+        getBitOfOne(length, "葛王");
         getBitOfOne(length, "王泽");
         getBitOfOne(length, "王泽兰");
     }
@@ -21,23 +21,24 @@ public class HashFunction {
         long h2 = APHash(str) % length;    // 1881724040
 
         System.out.println(h1 + "  " + h2);
-//        System.out.println(h1);
+        System.out.println(h1);
     }
 
     public static long BKDRHash(String str) {
         long seed = 131; // 31 131 1313 13131 131313 etc..
         long hash = 0;
+        long mod = 1000000007;
 
         for(int i = 0; i < str.length(); i++)
         {
-            hash = (hash * seed) + str.charAt(i);
+            hash = ((hash * seed) + str.charAt(i)) % mod;
         }
 
         return hash;
     }
 
-    public static int APHash(String str) {
-        int hash = 0;
+    public static long APHash(String str) {
+        long hash = 0;
 
         for (int i = 0; i < str.length(); i++) {
             if ((i & 1) == 0) {

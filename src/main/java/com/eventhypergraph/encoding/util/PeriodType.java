@@ -1,5 +1,6 @@
 package com.eventhypergraph.encoding.util;
 
-public class Event {
-
+public enum PeriodType {
+    MONTH,
+    YEAR;
 }

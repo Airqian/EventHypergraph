@@ -44,18 +44,18 @@ public class HyperedgeEncoding {
         propertyBitsets = new ArrayList<>();
     }
 
-    public void addEncoding(@NotNull Triple<String, Integer, Integer> triple) {
+    public void addEncoding(String content, int length, int hashFuncCount) {
         if (!isFull()) {
-            PPBitset ppBitset = new PropertyEncodingConstructor().encoding(triple);
+            PPBitset ppBitset = PropertyEncodingConstructor.encoding(content, length, hashFuncCount);
             propertyBitsets.add(ppBitset);
         } else {
             throw new IndexOutOfBoundsException(String.format("The property list of this event hyperedge is full.The max size is %d" , maxPropertyCount));
         }
     }
 
-    public void addEncoding(int index, @NotNull Triple<String, Integer, Integer> triple) {
+    public void addEncoding(int index, String content, int length, int hashFuncCount) {
         if (!isFull()) {
-            PPBitset ppBitset = new PropertyEncodingConstructor().encoding(triple);
+            PPBitset ppBitset = PropertyEncodingConstructor.encoding(content, length, hashFuncCount);
             propertyBitsets.add(index, ppBitset);
         } else {
             throw new IndexOutOfBoundsException(String.format("The property list of this event hyperedge is full.The max size is %d" , maxPropertyCount));
@@ -78,18 +78,7 @@ public class HyperedgeEncoding {
         }
     }
 
-    public void addAllEncoding(@NotNull List<Triple<String, Integer, Integer>> triples) {
-        if (triples.size() == 0)
-            throw new IllegalArgumentException("The number of property cannot be zero");
 
-        for(Triple<String, Integer, Integer> triple : triples) {
-            if (!isFull()) {
-                addEncoding(triple);
-            } else {
-                throw new IndexOutOfBoundsException(String.format("The property list of this event hyperedge is full.The max size is %d" , maxPropertyCount));
-            }
-        }
-    }
 
     public PPBitset andOperation(int index, @NotNull PPBitset another) {
         checkIndex(index);
@@ -150,6 +139,10 @@ public class HyperedgeEncoding {
         return propertyBitsets.get(index);
     }
 
+    public List<PPBitset> getPropertyBitsets() {
+        return propertyBitsets;
+    }
+
     public void setHyperedgeId(long id) {
         this.hyperedgeId = id;
     }
@@ -164,5 +157,14 @@ public class HyperedgeEncoding {
 
         if (index > propertyBitsets.size() || index > maxPropertyCount)
             throw new IndexOutOfBoundsException(String.format("The index exceeds the length of the property list. index = %d, actual property length = %d, max length = %d", index, propertyBitsets.size(), maxPropertyCount));
+    }
+
+    public void printEncoding() {
+        StringBuilder builder = new StringBuilder();
+        for (PPBitset ppBitset : propertyBitsets) {
+            builder.append(ppBitset.toString());
+            builder.append(" ");
+        }
+        System.out.println(builder);
     }
 }

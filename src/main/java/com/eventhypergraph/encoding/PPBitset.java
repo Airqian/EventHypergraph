@@ -1,7 +1,9 @@
 package com.eventhypergraph.encoding;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
+import java.util.List;
 
 /**
  * 属性编码位串类
@@ -105,6 +107,24 @@ public class PPBitset extends BitSet implements Comparable<PPBitset> {
         return (words[wordIndex] & (1 << bitIndex)) != 0;
     }
 
+    public List<Integer> getAllOneBits() {
+        List<Integer> bits = new ArrayList<>();
+
+        int i = nextSetBit(0);
+        if (i != -1) {
+            bits.add(i);
+            while (true) {
+                if (++i < 0) break;
+                if ((i = nextSetBit(i)) < 0) break;
+                int endOfRun = nextClearBit(i);
+                do { bits.add(i); }
+                while (++i != endOfRun);
+            }
+        }
+
+        return bits;
+    }
+
     /**
      * Returns the number of bits set to {@code true} in this {@code PPBitSet}.
      *
@@ -174,7 +194,7 @@ public class PPBitset extends BitSet implements Comparable<PPBitset> {
         if (this.length() != bitset.length())
             throw new IllegalArgumentException("The encoding lengths of the two are not equal, unable to perform bitwise operation.");
 
-        for(int i = 0; i < maxBitsInUse; i++) {
+        for (int i = 0; i < maxBitsInUse; i++) {
             boolean bit1 = this.get(i);
             boolean bit2 = bitset.get(i);
             if (bit1 & bit2 != bit1)
