@@ -40,5 +40,5 @@ public class FilePathConstants {
 
     public final static String SHOPPIONG_EVENT_IOFO = "src/main/java/com/eventhypergraph/dataset/shopping/shoppingEventInfo.txt";
 
-
+    public final static String QUERY_FILE_PATH = "src/main/java/com/eventhypergraph/dataset/shopping/query.txt";
 }

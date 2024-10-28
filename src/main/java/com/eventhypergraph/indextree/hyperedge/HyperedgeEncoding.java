@@ -10,8 +10,8 @@ import java.util.List;
 
 
 /**
- * This class saves the encoding of event hyperedges and encapsulates the bit operations of the PPBitset class.
- * The order of the encodings must strictly align with the order of the vertices.
+ * 这个类保存事件超边的编码，并封装了 PPBitset 类的位操作。
+ * 编码的顺序必须严格与属性的顺序对齐。
  */
 public class HyperedgeEncoding {
     /**
@@ -27,9 +27,6 @@ public class HyperedgeEncoding {
 
     private List<PPBitset> propertyBitsets;
 
-    /**
-     * Store the maximum number of property encodings that this hyperedge can contain.
-     */
     private int maxPropertyCount;
 
     public HyperedgeEncoding(int maxPropertyCount) {
@@ -79,7 +76,6 @@ public class HyperedgeEncoding {
     }
 
 
-
     public PPBitset andOperation(int index, @NotNull PPBitset another) {
         checkIndex(index);
 
@@ -99,13 +95,6 @@ public class HyperedgeEncoding {
 
         PPBitset bitset = propertyBitsets.get(index);
         return bitset.or(hyperedgeEncoding.getProperty(index));
-    }
-
-    public boolean isBitwiseSubset(int index, @NotNull PPBitset another) {
-        checkIndex(index);
-
-        PPBitset bitset = propertyBitsets.get(index);
-        return bitset.isBitwiseSubset(another);
     }
 
     public boolean isBitwiseSubset(int index, @NotNull HyperedgeEncoding hyperedgeEncoding) {

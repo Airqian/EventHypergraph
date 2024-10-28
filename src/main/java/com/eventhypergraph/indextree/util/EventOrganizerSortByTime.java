@@ -40,7 +40,6 @@ public class EventOrganizerSortByTime {
     }
 
     // 添加事件，并使用二分查找插入到正确的位置
-    // FIXME 插入窗口的时候会根据主体属性和时间进行排序 这里进行预排序好像没什么用
     public void addEvent(long user, String originalTimeStr, long time, String eventDetail) {
         // 将原始的时间字符串转化为对应的时间段key
         String targetTimeStr = LocalDateTime.parse(originalTimeStr, originalFormat).format(targetFormat);
@@ -105,7 +104,4 @@ public class EventOrganizerSortByTime {
             throw new RuntimeException(e);
         }
     }
-
-
 }
-

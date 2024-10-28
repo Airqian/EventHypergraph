@@ -1,8 +1,9 @@
 package com.eventhypergraph.indextree.util;
 
 public class IDGenerator {
+    private static long initialId = 1537074805834256649l;
     public static long generateNodeId() {
-        SnowFlake snowFlake = new SnowFlake(1, 1);
-        return snowFlake.nextId();
+
+        return ++initialId;
     }
 }

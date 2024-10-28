@@ -1,5 +1,6 @@
 package com.eventhypergraph.indextree.hyperedge;
 
+import cn.hutool.core.util.IdUtil;
 import com.eventhypergraph.encoding.PPBitset;
 import com.eventhypergraph.encoding.PropertyEncodingConstructor;
 import com.eventhypergraph.encoding.util.Triple;
@@ -10,42 +11,46 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Hyperedge {
+    // 数据超边的id从数据集中获取，派生超边的id需要生成
     private long id;
 
-    /* 事件类型id，4字节 */
+    // 事件类型id
     private int eventTypeId;
 
-    /* 元数据：该事件超边包含的顶点数 */
+    // 该事件超边包含的顶点数
     private int numOfVertex;
 
-    /* 元数据：该事件超边包含的属性数（算是冗余存储） */
+    // 元数据：该事件超边包含的属性数
     private int maxPropertyNum;
 
     /**
-     * 元数据：
-     * Assuming the definition of the User entity (with properties userName, phoneNumber, IDCard) and
-     * the AOI entity (with properties AOIName, city), the vertexToPropOffset numerical list is [4, 6].
-     * There are a total of 6 properties, with the User's property set being [1, 4) and the AOI's property set being [4, 6).
+     * 元数据：顶点到属性映射偏移量，属性总数为右边界-1
+     * 假设用户实体的定义包括属性 userName、phoneNumber 和 IDCard，而 AOI 实体的定义包括属性 AOIName 和 city。
+     * vertexToPropOffset 数字列表为 [4, 6]。总共有 6 个属性，其中用户的属性集合为 [1, 4)，AOI 的属性集合为 [4, 6)。
      */
     private int[] vertexToPropOffset;
 
     private HyperedgeEncoding encoding;
 
-    public void Hyperedge() {
-
-    }
-
-
+    // 此构造方法用于Hyperedge#clone()方法
     public Hyperedge(int numOfVertex, int maxPropertyNum, int[] vertexToPropOffset) {
-        this.id = IDGenerator.generateNodeId();
+        this.id = IdUtil.getSnowflakeNextId();
         this.numOfVertex = numOfVertex;
         this.maxPropertyNum = maxPropertyNum;
         this.vertexToPropOffset = vertexToPropOffset;
         this.encoding = new HyperedgeEncoding(id, maxPropertyNum);
     }
 
-    public Hyperedge(int eventTypeId, int numOfVertex, int maxPropertyNum, int[] vertexToPropOffset) {
-        this(numOfVertex, maxPropertyNum, vertexToPropOffset);
+    public Hyperedge(long id, int numOfVertex, int maxPropertyNum, int[] vertexToPropOffset) {
+        this.id = id;
+        this.numOfVertex = numOfVertex;
+        this.maxPropertyNum = maxPropertyNum;
+        this.vertexToPropOffset = vertexToPropOffset;
+        this.encoding = new HyperedgeEncoding(id, maxPropertyNum);
+    }
+
+    public Hyperedge(long id, int eventTypeId, int numOfVertex, int maxPropertyNum, int[] vertexToPropOffset) {
+        this(id, numOfVertex, maxPropertyNum, vertexToPropOffset);
 
         this.eventTypeId = eventTypeId;
     }
@@ -73,20 +78,19 @@ public class Hyperedge {
 
     /**
      * 两条超边之间的属性编码OR操作，在构建索引树阶段同一个子节点中的所有超边向上汇聚成父节点时会用到（叶节点和非叶节点都会用到）
-     * @param hyperedge
-     * @return 执行 OR 操作获得的超边编码结果
+     * @param hyperedge 新插入的超边
      */
-    public HyperedgeEncoding orEncoding(Hyperedge hyperedge) {
+    public void encodingOr(Hyperedge hyperedge) {
         if (this.maxPropertyNum != hyperedge.maxPropertyNum)
             throw new IllegalArgumentException(String.format("The number of properties contained in the two hyperedges is not equal." +
                     "hyperedge1: id = %d, numOfProperty = %d, hyperedge2: id = %d, numOfProperty = %d", id, maxPropertyNum, hyperedge.getId(), hyperedge.getMaxPropertyNum()));
 
-        HyperedgeEncoding hyperedgeEncoding = new HyperedgeEncoding(maxPropertyNum);
-        for (int i = 0; i < maxPropertyNum; i++) {
-            PPBitset ppBitset = encoding.orOperation(i, hyperedge.getEncoding());
-            hyperedgeEncoding.addEncoding(ppBitset);
+        for (int i = 0; i < hyperedge.getEncoding().size(); i++) {
+            List<Integer> bits = hyperedge.getEncoding().getProperty(i).getAllOneBits();
+            for (int bit : bits) {
+                this.getEncoding().getProperty(i).set(bit, true);
+            }
         }
-        return hyperedgeEncoding;
     }
 
     /**
@@ -99,6 +103,7 @@ public class Hyperedge {
             throw new IllegalArgumentException(String.format("The number of properties contained in the two hyperedges is not equal." +
                     "hyperedge1: id = %d, numOfProperty = %d, hyperedge2: id = %d, numOfProperty = %d", id, maxPropertyNum, hyperedge.getId(), hyperedge.getMaxPropertyNum()));
 
+        // 对每个位置的属性逐一进行判断
         for (int i = 0; i < maxPropertyNum; i++) {
             isBitwiseSubset(i, hyperedge);
         }
@@ -106,7 +111,6 @@ public class Hyperedge {
         return true;
     }
 
-    // 特定位置的属性遍码
     public boolean isBitwiseSubset(int index, Hyperedge Hyperedge) {
         if (this.maxPropertyNum != Hyperedge.maxPropertyNum)
             throw new IllegalArgumentException(String.format("The number of properties contained in the two hyperedges is not equal." +
@@ -140,15 +144,12 @@ public class Hyperedge {
         encoding.addEncoding(index, ppBitset);
     }
 
-
-
     public void addEncoding(@NotNull PPBitset bitset) {
         encoding.addEncoding(bitset);
     }
 
 
     // ---------------------------- Getter 和 Setter ----------------------------
-
     public long getId() {
         return id;
     }
@@ -200,9 +201,4 @@ public class Hyperedge {
     public void printEncoding() {
         encoding.printEncoding();
     }
-
-
-
-
-
 }

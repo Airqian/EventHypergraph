@@ -1,7 +1,6 @@
 package com.eventhypergraph.indextree.treeNode;
 
 import com.eventhypergraph.encoding.Exception.TimeOutOfBoundException;
-import com.eventhypergraph.encoding.PPBitset;
 import com.eventhypergraph.encoding.util.Pair;
 import com.eventhypergraph.indextree.hyperedge.DataHyperedge;
 import com.eventhypergraph.indextree.hyperedge.Hyperedge;
@@ -10,7 +9,6 @@ import com.sun.istack.internal.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import java.util.logging.SimpleFormatter;
 
 /**
  * - 叶节点存储真实的事件数据超边，每条数据超边都有一个指向超边对象的指针，目前表示为Hyperedge的Id
@@ -55,8 +53,8 @@ public class LeafTreeNode extends TreeNode {
 
             // 更新本节点的seed、cardinality以及globalbits
             updateSeedAndCardinality(dataHyperedge);
-            updateGlobalBitsLocal(dataHyperedge);
-//            updateParent();
+            updateTopHyperedge(dataHyperedge);
+            updateParent(dataHyperedge);
 
             return true;
         }
@@ -64,24 +62,7 @@ public class LeafTreeNode extends TreeNode {
         return false;
     }
 
-    // 更新本节点的seed hyperedge
-    public void updateSeedAndCardinality(@NotNull DataHyperedge dataHyperedge) {
-        int curCardinality = dataHyperedge.cardinality();
 
-        if (getSeedHyperedges().size() < 2) {
-            getSeedHyperedges().add(new Pair(dataHyperedge, curCardinality));
-        } else {
-            if (curCardinality > getMinCardinality()) {
-                if (getSeedHyperedges().get(0).getSecond() < curCardinality) {
-                    getSeedHyperedges().set(0, new Pair(dataHyperedge, curCardinality));
-                } else {
-                    getSeedHyperedges().set(1, new Pair(dataHyperedge, curCardinality));
-                }
-            }
-            setMinCardinality(Math.min(getSeedHyperedges().get(0).getSecond(), getSeedHyperedges().get(1).getSecond()));
-        }
-
-    }
 
     public void addHyperedge(@NotNull List<DataHyperedge> dataHyperedges) {
         for (int i = 0; i < dataHyperedges.size(); i++)
@@ -89,7 +70,7 @@ public class LeafTreeNode extends TreeNode {
     }
 
     /**
-     * 默认非叶节点不进行分裂，因此不更新非叶节点的cardinality信息
+     * 默认非叶子节点不进行分裂，因此不更新非叶节点的cardinality信息
      * 根据本节点的globalbits更新对应的父超边（不具有传递性）
      */
     public void updateParentEdge() {
@@ -103,7 +84,6 @@ public class LeafTreeNode extends TreeNode {
                 pEdge.getEncoding().getProperty(i).set(bit);
             }
         }
-
     }
 
 
@@ -154,18 +134,11 @@ public class LeafTreeNode extends TreeNode {
         return this.dataHyperedges.size();
     }
 
-    public void print() {
-        printTimeRange();
-        printTopHyperedge();
-        printGlobalBits();
-        printEdges();
-        System.out.println();
-    }
-
     public void printEdges() {
         for (Hyperedge hyperedge : dataHyperedges) {
             hyperedge.printEncoding();
         }
+        System.out.println();
     }
 
     public void clear() {

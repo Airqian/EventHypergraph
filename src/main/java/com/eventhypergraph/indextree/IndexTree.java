@@ -13,29 +13,32 @@ import com.eventhypergraph.indextree.util.DataSetInfo;
 import com.eventhypergraph.indextree.util.Event;
 import com.sun.istack.internal.NotNull;
 
+import java.io.*;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
+import static com.eventhypergraph.dataset.FilePathConstants.QUERY_FILE_PATH;
 import static com.eventhypergraph.dataset.FilePathConstants.SHOPPIONG_EVENT_EXPERIMENT_FILE_PATH;
 public class IndexTree {
     private TreeNode root;
 
     private int windowSize;
 
+    // 元数据：超边中包含的顶点数量
     int numOfVertex;
 
-    // 该索引树超边中包含的最大属性数
+    // 元数据：该索引树超边中包含的最大属性数
     private int maxPropertyNum;
 
     /**
-     * 元数据：
-     * Assuming the definition of the User entity (with properties userName, phoneNumber, IDCard) and
-     * the AOI entity (with properties AOIName, city), the vertexToPropOffset numerical list is [4, 6].
-     * There are a total of 6 properties, with the User's property set being [1, 4) and the AOI's property set being [4, 6).
+     * 元数据：顶点到属性映射偏移量，属性总数为右边界-1
+     * 假设用户实体的定义包括属性 userName、phoneNumber 和 IDCard，而 AOI 实体的定义包括属性 AOIName 和 city。
+     * vertexToPropOffset 数字列表为 [4, 6]。总共有 6 个属性，其中用户的属性集合为 [1, 4)，AOI 的属性集合为 [4, 6)。
      */
     private int[] vertexToPropOffset;
 
+    // 元数据：属性编码的长度
     private int[] propEncodingLength;
 
     private int layer;
@@ -61,7 +64,37 @@ public class IndexTree {
         int hashFuncCount = 3;
 
         IndexTree indexTree = new IndexTree(windowSize, numOfVertex, maxPropertyNum, propEncodingLength, vertexToPropOffset);
-        indexTree.buildTree(SHOPPIONG_EVENT_EXPERIMENT_FILE_PATH, 1, 5, PeriodType.MONTH, dataSetPropIndex, hashFuncCount);
+
+        int idIndex = 0;
+        int userIndex = 1;
+        int timeIndex = 5;
+        indexTree.buildTree(SHOPPIONG_EVENT_EXPERIMENT_FILE_PATH, idIndex, userIndex, timeIndex, PeriodType.MONTH, dataSetPropIndex, hashFuncCount);
+
+        // 给超边对应上主体属性的id
+        BufferedReader bufferedReader;
+        try {
+            bufferedReader = new BufferedReader(new FileReader(new File(QUERY_FILE_PATH)));
+            String line;
+            SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
+            while ((line = bufferedReader.readLine()) != null) {
+                String[] items = line.split("\\t");
+                Date date  = format.parse(items[timeIndex]);
+                long time = date.getTime();
+                DataHyperedge hyperedge = new DataHyperedge(time, numOfVertex, maxPropertyNum, propEncodingLength);
+                for (int i = 0, j = 0; i < dataSetPropIndex.length; i++, j++) {
+                    PPBitset ppBitset = PropertyEncodingConstructor.encoding(items[dataSetPropIndex[i]], propEncodingLength[j], hashFuncCount);
+                    hyperedge.addEncoding(ppBitset);
+                }
+
+                List<TreeNode> leafTreeNode = indexTree.findLeafTreeNode(hyperedge);
+                System.out.println(leafTreeNode.size());
+                for (TreeNode node : leafTreeNode)
+                    node.print();
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
 
@@ -74,7 +107,7 @@ public class IndexTree {
      * @param dataSetPropIndex 属性在数据集中的下标，默认主体属性在第一位，构建索引时按照该下标顺序拼接编码
      * @param hashFuncCount 所使用的哈希函数个数
      */
-    public void buildTree(String filePath, int userIndex, int timeIndex, PeriodType periodType, int[] dataSetPropIndex, int hashFuncCount) {
+    public void buildTree(String filePath, int idIndex, int userIndex, int timeIndex, PeriodType periodType, int[] dataSetPropIndex, int hashFuncCount) {
         // 根据指定文件读取获得事件记录和元数据
         DataSetInfo dataSetInfo = DataAnalyzer.readFile(filePath, userIndex, timeIndex, periodType);
         dataSetInfo.getOrganizer().printAllEvents();
@@ -104,7 +137,7 @@ public class IndexTree {
                     try {
                         Date date  = format.parse(items[timeIndex]);
                         long time = date.getTime();
-                        DataHyperedge hyperedge = new DataHyperedge(time, numOfVertex, maxPropertyNum, propEncodingLength);
+                        DataHyperedge hyperedge = new DataHyperedge(Long.valueOf(items[idIndex]), time, numOfVertex, maxPropertyNum, propEncodingLength);
                         minTime = Math.min(minTime, time);  // 更新窗口时间
                         maxTime = Math.max(maxTime, time);
                         leafTreeNode.setStartTime(minTime);
@@ -145,11 +178,14 @@ public class IndexTree {
             }
 
             InternalTreeNode parentNode = new InternalTreeNode(windowSize, numOfVertex, maxPropertyNum, vertexToPropOffset, propEncodingLength);
-            // 取出对应数量的子节点构建父节点(后续需要算法优化，子节点的数量有范围)
+            // TODO 取出对应数量的子节点构建父节点(后续需要算法优化，子节点的数量有范围)
             for (int i = 1; i <= k; i++) {
-                TreeNode node = treeNodes.poll();
-                Hyperedge parentEdge = node.getTopHyperedge().clone();
-                parentNode.addChildNode(parentEdge, node);
+                TreeNode childNode = treeNodes.poll();
+                Hyperedge parentEdge = childNode.getTopHyperedge().clone();
+                parentNode.addChildNode(parentEdge, childNode);
+
+                childNode.setParentNode(parentNode);
+                childNode.setParentEdge(parentEdge);
             }
             treeNodes2.offer(parentNode);
 
@@ -180,6 +216,7 @@ public class IndexTree {
 
     // 从根节点开始找到符合条件的叶子节点
     private List<TreeNode> findLeafTreeNode(@NotNull Hyperedge hyperedge) {
+        DataHyperedge dataHyperedge = (DataHyperedge) hyperedge;
         Queue<TreeNode> queue1 = new ArrayDeque<>();
         Queue<TreeNode> queue2 = new ArrayDeque<>();
 
@@ -190,8 +227,9 @@ public class IndexTree {
 
             InternalTreeNode curNode = (InternalTreeNode) queue1.poll();
             for (Hyperedge edge : curNode.getDerivedHyperedges()) {
-                if (hyperedge.isBitwiseSubset(edge))
-                    queue2.offer(curNode.getNodeByEdgeID(hyperedge.getId()));
+                TreeNode node = curNode.getNodeByEdgeID(edge.getId());
+                if (hyperedge.isBitwiseSubset(edge) && node.getStartTime() <= dataHyperedge.getEventTime() && node.getEndTime() >= dataHyperedge.getEventTime())
+                    queue2.offer(node);
             }
 
             if (queue1.isEmpty()) {
@@ -251,12 +289,12 @@ public class IndexTree {
 
         // TODO：此处逻辑再看看，理论上只要父节点往上更新就可以
         // 5. 根据新插入的超边更新两个子节点的父超边
-        parentNode.updateParentEdgeByEdge(dataHyperedge);
+        parentNode.updateParent(dataHyperedge);
         // newLeafNode.updateParentEdgeByEdge(dataHyperedge);
 
         // 6. 更新父节点的globalbits，并将新添加的属性信息在树中向上传播（继续用dataHyperedge往上更新即可，并且暂时不考虑父节点的seed hyperedge变化）
         if (parentNode != null) {
-            parentNode.updateGlobalBitsLocal(dataHyperedge);
+            parentNode.updateTopHyperedge(dataHyperedge);
             parentNode = parentNode.getParentNode();
         }
 

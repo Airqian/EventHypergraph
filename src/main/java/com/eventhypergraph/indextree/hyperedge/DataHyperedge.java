@@ -16,25 +16,18 @@ public class DataHyperedge extends Hyperedge implements Comparable<DataHyperedge
      */
     private long eventTime;
 
+    // 超边包含的顶点id
     private List<Long> vertexIds;
 
-    // HACK: 用来测试排序功能的，没有实际意义
+    // HACK: 用来测试超边的排序功能，没有实际意义
     public DataHyperedge(long eventTime) {
         super(1, 1, 1, new int[]{1});
         this.eventTime = eventTime;
         vertexIds = new ArrayList<>();
         setEncoding(new HyperedgeEncoding(100, 10));
     }
-//
-//    // HACK: 用来测试排序功能的，没有实际意义
-//    public DataHyperedge(long eventTime, PPBitset bitset) {
-//        this.eventTime = eventTime;
-//        vertexIds = new ArrayList<>();
-//        setEncoding(new HyperedgeEncoding(100, 10));
-//        getEncoding().addEncoding(bitset);
-//    }
 
-
+    // 该构造函数在进行查询的时候会用到
     public DataHyperedge(long eventTime, int numOfVertex, int maxPropertyNum,
                          int[] vertexToPropOffset) {
         super(numOfVertex, maxPropertyNum, vertexToPropOffset);
@@ -43,9 +36,17 @@ public class DataHyperedge extends Hyperedge implements Comparable<DataHyperedge
         vertexIds = new ArrayList<>();
     }
 
-    public DataHyperedge(int eventTypeId, long eventTime, int numOfVertex, int maxPropertyNum,
+    public DataHyperedge(long id, long eventTime, int numOfVertex, int maxPropertyNum,
                          int[] vertexToPropOffset) {
-        super(eventTypeId, numOfVertex, maxPropertyNum, vertexToPropOffset);
+        super(id, numOfVertex, maxPropertyNum, vertexToPropOffset);
+
+        this.eventTime = eventTime;
+        vertexIds = new ArrayList<>();
+    }
+
+    public DataHyperedge(long id, int eventTypeId, long eventTime, int numOfVertex,
+                         int maxPropertyNum, int[] vertexToPropOffset) {
+        super(id, eventTypeId, numOfVertex, maxPropertyNum, vertexToPropOffset);
 
         this.eventTime = eventTime;
         vertexIds = new ArrayList<>();
@@ -63,7 +64,7 @@ public class DataHyperedge extends Hyperedge implements Comparable<DataHyperedge
         }
         return res;
     }
-//
+
     /**
      * 两条超边的比较规则决定超边在时间窗口（叶子节点）中的排列顺序
      * - 若该时间窗口中超边的主体属性都相同，超边应按时间顺序排列

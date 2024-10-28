@@ -1,5 +1,6 @@
 package com.eventhypergraph.dataset;
 
+import cn.hutool.core.util.IdUtil;
 import org.junit.Test;
 
 import java.io.BufferedReader;
@@ -33,7 +34,7 @@ public class DataBuilder {
             // 现对每个用户mock一个购物事件
             for (int i = 0; i < 40; i++) {
                 StringBuilder builder = new StringBuilder();
-                builder.append((id + i) + "\t");  // 事件 id
+                builder.append(IdUtil.getSnowflakeNextId() + "\t");  // 事件 id
                 builder.append(users.get((int) (Math.random() * users.size())) + "\t"); // 用户 id
                 builder.append(mallNames.get((int) (Math.random() * mallNames.size())) + "\t"); // 商场名称
 
@@ -76,7 +77,7 @@ public class DataBuilder {
 
             while((line = bufferedReader.readLine()) != null) {
                 String[] items = line.split("\\t");
-                bufferedWriter.write(String.valueOf(id + i) + "\t");
+                bufferedWriter.write(IdUtil.getSnowflakeNextId() + "\t");
                 bufferedWriter.write(items[1] + "\t");
                 bufferedWriter.write(items[2] + "\t");
                 bufferedWriter.write("\n");
@@ -155,7 +156,7 @@ public class DataBuilder {
 
             while((line = bufferedReader.readLine()) != null) {
                 String[] items = line.split("\\t");
-                bufferedWriter.write(String.valueOf(id + i) + "\t");
+                bufferedWriter.write(IdUtil.getSnowflakeNextId() + "\t");
                 bufferedWriter.write(items[1] + "\t");
                 bufferedWriter.write(items[2]);
                 bufferedWriter.write("\n");
@@ -187,7 +188,7 @@ public class DataBuilder {
 
             while((line = bufferedReader.readLine()) != null) {
                 String[] items = line.split("\\t");
-                bufferedWriter.write(String.valueOf(id + i) + "\t");
+                bufferedWriter.write(IdUtil.getSnowflakeNextId() + "\t");
                 bufferedWriter.write(items[4] + "\t");
                 bufferedWriter.write(items[1] + "\t");
                 bufferedWriter.write(items[2] + "\t");
@@ -226,7 +227,7 @@ public class DataBuilder {
             while ((line = reader.readLine()) != null) {
                 String[] items = line.split("\\t");
                 StringBuilder stringBuilder = new StringBuilder();
-                stringBuilder.append((id + i) + "\t");
+                stringBuilder.append(IdUtil.getSnowflakeNextId() + "\t");
                 stringBuilder.append(items[1] + "\t");
 
                 // 对只售卖一种商品的商店条目分开处理
@@ -367,7 +368,7 @@ public class DataBuilder {
 
             while((line = bufferedReader.readLine()) != null) {
                 String[] items = line.split("\\t");
-                bufferedWriter.write(String.valueOf(id + i));
+                bufferedWriter.write(String.valueOf(IdUtil.getSnowflakeNextId()));
                 bufferedWriter.write("\t");
                 bufferedWriter.write(items[1]);
                 bufferedWriter.write("\t");
@@ -403,7 +404,7 @@ public class DataBuilder {
 
             while((line = bufferedReader.readLine()) != null) {
                 String[] items = line.split("\\t");
-                bufferedWriter.write(String.valueOf(id+ i));
+                bufferedWriter.write(String.valueOf(IdUtil.getSnowflakeNextId()));
                 bufferedWriter.write("\t");
                 bufferedWriter.write(items[1]);
                 bufferedWriter.write("\n");

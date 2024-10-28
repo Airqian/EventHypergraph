@@ -14,6 +14,7 @@ public class InternalTreeNode extends TreeNode {
     private List<TreeNode> childNodes;
 
     /**
+     * 保存超边id到子节点的映射
      * TODO 感觉要直接保存超边和节点，而不是id，此时就要用到TreeNode了
      */
     private Map<Long, TreeNode> edgeToNode;
@@ -37,42 +38,35 @@ public class InternalTreeNode extends TreeNode {
     }
 
     // 在非叶节点中添加超边和子节点（需同时添加）
-    // TODO  中间节点globalbits的更新
-    public void addChildNode(Hyperedge hyperedge, TreeNode node) {
+    public void addChildNode(Hyperedge parentEdge, TreeNode childNode) {
         check();
 
         if (!isFull()) {
             // 添加子节点，建立超边到子节点的映射
-            derivedHyperedges.add(hyperedge);
-            childNodes.add(node);
-            edgeToNode.put(hyperedge.getId(), node);
+            derivedHyperedges.add(parentEdge);
+            childNodes.add(childNode);
+            edgeToNode.put(parentEdge.getId(), childNode);
 
             // 更新节点的时间范围
-            if (getStartTime() > node.getStartTime())
-                setStartTime(node.getStartTime());
-            if (getEndTime() < node.getEndTime())
-                setEndTime(node.getEndTime());
+            if (getStartTime() > childNode.getStartTime())
+                setStartTime(childNode.getStartTime());
+            if (getEndTime() < childNode.getEndTime())
+                setEndTime(childNode.getEndTime());
 
             // 更新本seedHyperedge、cardinality以及globalbits
-            // updateCardinality(dataHyperedge);
-            updateGlobalBitsLocal(hyperedge);
+            updateSeedAndCardinality(parentEdge);
+            updateTopHyperedge(parentEdge);
+            updateParent(parentEdge);
         } else {
             // TODO 节点分裂
         }
-    }
-
-    public void print() {
-        printTimeRange();
-        printTopHyperedge();
-        printGlobalBits();
-        printEdges();
-        System.out.println();
     }
 
     public void printEdges() {
         for (Hyperedge hyperedge : derivedHyperedges) {
             hyperedge.printEncoding();
         }
+        System.out.println();
     }
 
     public TreeNode getNodeByEdgeID(long id) {
