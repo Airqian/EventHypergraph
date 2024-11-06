@@ -134,11 +134,12 @@ public class LeafTreeNode extends TreeNode {
         return this.dataHyperedges.size();
     }
 
-    public void printEdges() {
+    public String printEdges() {
+        StringBuilder builder = new StringBuilder();
         for (Hyperedge hyperedge : dataHyperedges) {
-            hyperedge.printEncoding();
+            builder.append(hyperedge.printEncoding()).append("\n");
         }
-        System.out.println();
+        return builder.toString();
     }
 
     public void clear() {

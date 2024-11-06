@@ -44,7 +44,10 @@ public class DataBuilder {
                 ArrayList<String> items = map.get(storeId);
 
                 builder.append(storeId + "\t");
-                builder.append(items.get((int) (Math.random() * items.size())) + "\t");
+                for (int j = 0; j < (int) (Math.random() * 10); j++) {
+                    builder.append(items.get((int) (Math.random() * items.size())) + "\t");
+                }
+
                 builder.append(getRandomTime(startTime, endTime)); // 事件时间
                 builder.append("\n");
 

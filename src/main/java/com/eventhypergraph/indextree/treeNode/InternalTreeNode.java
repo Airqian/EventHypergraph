@@ -62,11 +62,12 @@ public class InternalTreeNode extends TreeNode {
         }
     }
 
-    public void printEdges() {
+    public String printEdges() {
+        StringBuilder builder = new StringBuilder();
         for (Hyperedge hyperedge : derivedHyperedges) {
-            hyperedge.printEncoding();
+            builder.append(hyperedge.printEncoding()).append("\n");
         }
-        System.out.println();
+        return builder.toString();
     }
 
     public TreeNode getNodeByEdgeID(long id) {

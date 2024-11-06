@@ -99,9 +99,8 @@ public class Hyperedge {
      * @return
      */
     public boolean isBitwiseSubset(Hyperedge hyperedge) {
-        if (this.maxPropertyNum != hyperedge.maxPropertyNum)
-            throw new IllegalArgumentException(String.format("The number of properties contained in the two hyperedges is not equal." +
-                    "hyperedge1: id = %d, numOfProperty = %d, hyperedge2: id = %d, numOfProperty = %d", id, maxPropertyNum, hyperedge.getId(), hyperedge.getMaxPropertyNum()));
+        if (this.maxPropertyNum > hyperedge.maxPropertyNum)
+            return false;
 
         // 对每个位置的属性逐一进行判断
         for (int i = 0; i < maxPropertyNum; i++) {
@@ -112,9 +111,8 @@ public class Hyperedge {
     }
 
     public boolean isBitwiseSubset(int index, Hyperedge Hyperedge) {
-        if (this.maxPropertyNum != Hyperedge.maxPropertyNum)
-            throw new IllegalArgumentException(String.format("The number of properties contained in the two hyperedges is not equal." +
-                    "hyperedge1: id = %d, numOfProperty = %d, hyperedge2: id = %d, numOfProperty = %d", id, maxPropertyNum, Hyperedge.getId(), Hyperedge.getMaxPropertyNum()));
+        if (this.maxPropertyNum > Hyperedge.maxPropertyNum)
+            return false;
 
         return encoding.isBitwiseSubset(index, Hyperedge.getEncoding());
     }
@@ -198,7 +196,7 @@ public class Hyperedge {
         this.encoding = encoding;
     }
 
-    public void printEncoding() {
-        encoding.printEncoding();
+    public String printEncoding() {
+        return encoding.printEncoding();
     }
 }

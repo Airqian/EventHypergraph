@@ -36,9 +36,12 @@ public class FilePathConstants {
 
     public final static String SHOPPING_EVENT_DATA_FILE_PATH = "src/main/java/com/eventhypergraph/dataset/shopping/shoppingEvent.txt";
 
-    public final static String SHOPPIONG_EVENT_EXPERIMENT_FILE_PATH = "src/main/java/com/eventhypergraph/dataset/shopping/shoppingEvent1.txt";
+    public final static String SHOPPIONG_EVENT_EXPERIMENT_FILE_PATH = "src/main/java/com/eventhypergraph/dataset/shopping/example.txt";
 
     public final static String SHOPPIONG_EVENT_IOFO = "src/main/java/com/eventhypergraph/dataset/shopping/shoppingEventInfo.txt";
 
-    public final static String QUERY_FILE_PATH = "src/main/java/com/eventhypergraph/dataset/shopping/query.txt";
+    public final static String SHOPPIONG_TREE_IOFO = "src/main/java/com/eventhypergraph/dataset/shopping/treeInfo.txt";
+
+
+    public final static String SHOPPING_QUERY_FILE_PATH = "src/main/java/com/eventhypergraph/dataset/shopping/query.txt";
 }

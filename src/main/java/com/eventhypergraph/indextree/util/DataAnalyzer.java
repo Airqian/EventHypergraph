@@ -10,22 +10,24 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 import static com.eventhypergraph.dataset.FilePathConstants.SHOPPING_EVENT_DATA_FILE_PATH;
+import static com.eventhypergraph.indextree.util.GlobalConstants.SUBJECT_INDEX;
 
 public class DataAnalyzer {
     public static void main(String[] args) {
         DataAnalyzer dataAnalyzer = new DataAnalyzer();
         String shoppingfilePath = SHOPPING_EVENT_DATA_FILE_PATH;
-        dataAnalyzer.readFile(shoppingfilePath, 1, 5, PeriodType.MONTH);
+        dataAnalyzer.readFile(shoppingfilePath,  PeriodType.MONTH);
     }
 
     // 默认主体属性是第一个元素
     // 对数据集进行基础分析，得到数据集中记录总条数、事件最早发生时间、事件最晚发生时间不同主体的事件数量数以及时间范围
 
-    public static DataSetInfo readFile(String filePath, int userIndex, int timeIndex, PeriodType periodType) {
+    public static DataSetInfo readFile(String filePath, PeriodType periodType) {
         if (filePath == null || filePath.length() == 0)
             return null;
 
         int total = 0;
+        int maxPropertyNum = 0;
         long globalMinTime = Long.MAX_VALUE;
         long globalMaxTime = Long.MIN_VALUE;
         Map<Long, List<String>> subjects = new HashMap<>(); // 按主体为单位保存事件数据
@@ -41,15 +43,17 @@ public class DataAnalyzer {
 
             while ((line = reader.readLine()) != null) {
                 String[] elements = line.split("\\t");
-                // elements[0] 是事件id
-                long userId = Long.valueOf(elements[userIndex]);
-                subjects.putIfAbsent(userId, new ArrayList<>());
-                subjects.get(userId).add(line);
+                maxPropertyNum = Math.max(maxPropertyNum, elements.length - 2); // 去掉超边id和时间
 
-                String timeStr = elements[timeIndex];
+                // elements[0] 是事件id
+                long subjectId = Long.valueOf(elements[SUBJECT_INDEX]);
+                subjects.putIfAbsent(subjectId, new ArrayList<>());
+                subjects.get(subjectId).add(line);
+
+                String timeStr = elements[elements.length - 1];
                 long time = sdf.parse(timeStr).getTime();
 
-                organizer.addEvent(userId, timeStr, time, line);
+                organizer.addEvent(subjectId, timeStr, time, line);
                 globalMinTime = Math.min(globalMinTime, time);
                 globalMaxTime = Math.max(globalMaxTime, time);
 
@@ -70,6 +74,7 @@ public class DataAnalyzer {
         dataSetInfo.setGlobalMaxTime(globalMaxTime);
         dataSetInfo.setMonthDiff(monthDiff);
         dataSetInfo.setOrganizer(organizer);
+        dataSetInfo.setMaxPropertyNum(maxPropertyNum);
 
 //        System.out.println("total = " + total);
 //        System.out.println("数据集中主体的个数：" + subjects.size());

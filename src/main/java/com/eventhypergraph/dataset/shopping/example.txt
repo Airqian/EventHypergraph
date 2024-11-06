@@ -1,0 +1,40 @@
+1854073930922393600	319416	沈阳万达	XiaoMi	sports bracelet	smart phone	2019-06-18 06:00:58
+1854073930964336640	1204362	成都春熙路步行街	Pandora	necklace	ring	2019-05-16 15:55:01
+1854073930964336641	1243961	杭州银泰城	UNIQLO	jacket	T-shirt	T-shirt	2019-06-09 15:50:01
+1854073930964336642	1243961	上海K11	Zara	down jacket	jeans	scarf	down jacket	2019-06-30 19:54:12
+1854073930964336643	549761	天津恒隆广场	Guerlain	lipstick	2019-08-07 07:07:56
+1854073930964336644	981157	杭州银泰城	Tims	coffee	coffee	coffee	coffee	coffee	2019-05-07 08:56:37
+1854073930968530944	319416	北京三里屯	UNIQLO	jacket	down jacket	jeans	jacket	2019-09-13 09:07:23
+1854073930968530945	319416	杭州银泰城	HuaWei	smart phone	tablet PC	tablet PC	tablet PC	tablet PC	2019-11-28 08:59:16
+1854073930968530946	1243961	广州太古里	Pandora	ring	ring	2019-07-21 06:57:11
+1854073930968530947	319416	成都宽窄巷子	Walmart Supercenter	teacup	teacup	2019-04-28 02:32:42
+1854073930968530948	319407	沈阳K11	Zara	jeans	dresses	2019-07-28 02:50:16
+1854073930968530949	1420064	北京王府井大街	Perfect Diary	cleansing water	lipstick	2019-03-14 09:27:41
+1854073930972725248	549763	沈阳K11	XiaoMi	sports bracelet	sports bracelet	smart phone	2019-09-07 19:45:37
+1854073930972725249	319407	上海恒隆广场	HuaWei	smart phone	2019-05-11 00:49:12
+1854073930972725250	765464	杭州银泰城	Walmart Supercenter	teacup	electric cooker	electric cooker	teacup	2019-03-04 16:44:26
+1854073930972725251	1468003	成都锦里古街	Adidas Originals	sports socks	2019-11-28 19:33:25
+1854073930972725252	1204362	成都宽窄巷子	McDonald's	chips	hamburger	2019-03-29 22:34:56
+1854073930972725253	981157	成都银泰城	COTTI	coffee	2019-09-05 20:11:21
+1854073930976919552	765464	上海大悦城	UNIQLO	down jacket	2019-12-20 20:38:44
+1854073930976919553	549763	上海K11	Adidas Originals	sports suit	hoodie	2019-05-20 02:57:57
+1854073930976919554	765464	北京CBD	Darry Ring	2019-11-30 16:52:42
+1854073930976919555	1468003	北京CBD	McDonald's	chips	hamburger	2019-11-28 02:20:49
+1854073930976919556	1243961	天津恒隆广场	XiaoMi	smart phone	smart phone	sports bracelet	2019-10-13 22:02:09
+1854073930976919557	765464	广州太古里	Tims	coffee	2019-09-19 15:34:27
+1854073930976919558	1243961	广州太古里	Adidas Originals	hoodie	2019-07-18 06:25:31
+1854073930981113856	1204362	上海恒隆广场	Apple Store	tablet PC	sports bracelet	sports bracelet	smart phone	2019-11-17 02:07:35
+1854073930981113857	319407	广州太古里	McDonald's	chips	chips	hamburger	chips	2019-09-17 06:40:23
+1854073930981113858	981157	成都春熙路步行街	Zara	dresses	scarf	T-shirt	dresses	2019-06-03 06:01:25
+1854073930981113859	1243961	沈阳K11	Luckin Coffee	coffee	coffee	coffee	2019-03-23 19:26:25
+1854073930981113860	1204362	北京三里屯	Tims	coffee	2019-03-23 10:26:23
+1854073930981113861	319416	沈阳大悦城	McDonald's	chips	2019-04-16 22:06:52
+1854073930981113862	1420064	深圳万象城	Apple Store	laptop	smart phone	sports bracelet	2019-06-06 07:02:08
+1854073930985308160	549761	沈阳恒隆广场	HuaWei	sports bracelet	2019-08-26 06:07:25
+1854073930985308161	765464	上海大悦城	Walmart Supercenter	teacup	electric cooker	electric cooker	2019-04-08 19:38:59
+1854073930985308162	1243961	成都春熙路步行街	Adidas Originals	sports socks	2019-05-17 20:51:34
+1854073930985308163	981157	沈阳大悦城	Zara	2019-04-24 03:15:43
+1854073930985308164	549763	成都春熙路步行街	Walmart Supercenter	electric cooker	teacup	2019-09-09 10:24:57
+1854073930985308165	1420064	北京大悦城	Apple Store	sports bracelet	sports bracelet	2019-06-14 07:40:30
+1854073930985308166	549761	北京三里屯	Adidas Originals	sports suit	sports suit	hoodie	sports suit	sports suit	2019-03-14 07:44:34
+1854073930989502464	1243961	北京大悦城	McDonald's	chips	hamburger	2019-05-14 21:41:34

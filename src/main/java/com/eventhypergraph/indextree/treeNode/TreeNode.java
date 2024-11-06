@@ -9,8 +9,14 @@ import com.eventhypergraph.indextree.util.IDGenerator;
 import com.sun.istack.internal.NotNull;
 
 import javax.crypto.spec.PSource;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.*;
+
+import static com.eventhypergraph.dataset.FilePathConstants.SHOPPIONG_TREE_IOFO;
 
 /**
  * 树节点父类，定义了时间范围、节点容量等公共字段
@@ -147,14 +153,39 @@ public class TreeNode {
     }
 
     public void print(){
-        printTimeRange();
-        printTopHyperedge();
-        printGlobalBits();
-        printEdges();
+        BufferedWriter writer;
+
+        try {
+            writer = new BufferedWriter(new FileWriter(SHOPPIONG_TREE_IOFO, true));
+            StringBuilder builder = new StringBuilder();
+            SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
+            // 节点 id
+            builder.append("Node ID: ").append(this.id).append("\n");
+
+            // time range
+            builder.append("start time: ").append(format.format(new Date(startTime)))
+                    .append(", end time: ").append(format.format(new Date(endTime))).append("\n");
+
+            // tophyperedge
+            builder.append("TopHyperedge: ").append(this.topHyperedge.printEncoding()).append("\n");
+
+            // 编码数据
+            builder.append(printEdges()).append("\n");
+
+            writer.write(builder.toString());
+            writer.close();
+
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
 
     }
 
-    protected void printEdges() {}
+    protected String printEdges() {
+        return "";
+    }
 
     public void printTimeRange() {
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");

@@ -20,6 +20,8 @@ public class DataSetInfo {
     // 数据集中事件发生的最小时间
     private long globalMaxTime;
 
+    private int maxPropertyNum;
+
     private int monthDiff;
 
     public DataSetInfo(){}
@@ -70,5 +72,13 @@ public class DataSetInfo {
 
     public void setSubjectsNum(int subjectsNum) {
         this.subjectsNum = subjectsNum;
+    }
+
+    public int getMaxPropertyNum() {
+        return maxPropertyNum;
+    }
+
+    public void setMaxPropertyNum(int maxPropertyNum) {
+        this.maxPropertyNum = maxPropertyNum;
     }
 }

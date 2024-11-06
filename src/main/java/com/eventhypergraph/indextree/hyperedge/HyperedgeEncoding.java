@@ -148,12 +148,12 @@ public class HyperedgeEncoding {
             throw new IndexOutOfBoundsException(String.format("The index exceeds the length of the property list. index = %d, actual property length = %d, max length = %d", index, propertyBitsets.size(), maxPropertyCount));
     }
 
-    public void printEncoding() {
+    public String printEncoding() {
         StringBuilder builder = new StringBuilder();
         for (PPBitset ppBitset : propertyBitsets) {
             builder.append(ppBitset.toString());
             builder.append(" ");
         }
-        System.out.println(builder);
+        return builder.toString();
     }
 }

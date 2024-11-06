@@ -2,8 +2,6 @@ package com.eventhypergraph.indextree;
 
 import com.eventhypergraph.encoding.PPBitset;
 import com.eventhypergraph.encoding.PropertyEncodingConstructor;
-import com.eventhypergraph.encoding.util.PeriodType;
-import com.eventhypergraph.indextree.util.DataAnalyzer;
 import com.eventhypergraph.indextree.hyperedge.DataHyperedge;
 import com.eventhypergraph.indextree.hyperedge.Hyperedge;
 import com.eventhypergraph.indextree.treeNode.InternalTreeNode;
@@ -18,15 +16,16 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
-import static com.eventhypergraph.dataset.FilePathConstants.QUERY_FILE_PATH;
-import static com.eventhypergraph.dataset.FilePathConstants.SHOPPIONG_EVENT_EXPERIMENT_FILE_PATH;
+import static com.eventhypergraph.dataset.FilePathConstants.SHOPPIONG_TREE_IOFO;
+import static com.eventhypergraph.indextree.util.GlobalConstants.HE_ID_INDEX;
+
 public class IndexTree {
     private TreeNode root;
 
     private int windowSize;
 
     // 元数据：超边中包含的顶点数量
-    int numOfVertex;
+    private int numOfVertex;
 
     // 元数据：该索引树超边中包含的最大属性数
     private int maxPropertyNum;
@@ -41,9 +40,12 @@ public class IndexTree {
     // 元数据：属性编码的长度
     private int[] propEncodingLength;
 
+    private int hashFuncCount;
+
     private int layer;
 
-    public IndexTree(int windowSize, int numOfVertex, int maxPropertyNum, int[] propEncodingLength, int[] vertexToPropOffset) {
+    public IndexTree(int windowSize, int numOfVertex, int maxPropertyNum, int[] propEncodingLength,
+                     int[] vertexToPropOffset, int hashFuncCount) {
         if (maxPropertyNum != propEncodingLength.length)
             throw new IllegalArgumentException("属性个数与编码长度列表不匹配");
 
@@ -52,66 +54,13 @@ public class IndexTree {
         this.numOfVertex = numOfVertex;
         this.maxPropertyNum = maxPropertyNum;
         this.vertexToPropOffset = vertexToPropOffset;
+        this.hashFuncCount = hashFuncCount;
     }
-
-    public static void main(String[] args) {
-        int windowSize = 10;
-        int numOfVertex = 4;
-        int maxPropertyNum = 4;
-        int[] propEncodingLength = new int[] {15, 15, 15, 15};
-        int[] dataSetPropIndex = new int[]{1,2,3,4};
-        int[] vertexToPropOffset = new int[]{1, 2, 3, 4};
-        int hashFuncCount = 3;
-
-        IndexTree indexTree = new IndexTree(windowSize, numOfVertex, maxPropertyNum, propEncodingLength, vertexToPropOffset);
-
-        int idIndex = 0;
-        int userIndex = 1;
-        int timeIndex = 5;
-        indexTree.buildTree(SHOPPIONG_EVENT_EXPERIMENT_FILE_PATH, idIndex, userIndex, timeIndex, PeriodType.MONTH, dataSetPropIndex, hashFuncCount);
-
-        // 给超边对应上主体属性的id
-        BufferedReader bufferedReader;
-        try {
-            bufferedReader = new BufferedReader(new FileReader(new File(QUERY_FILE_PATH)));
-            String line;
-            SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-
-            while ((line = bufferedReader.readLine()) != null) {
-                String[] items = line.split("\\t");
-                Date date  = format.parse(items[timeIndex]);
-                long time = date.getTime();
-                DataHyperedge hyperedge = new DataHyperedge(time, numOfVertex, maxPropertyNum, propEncodingLength);
-                for (int i = 0, j = 0; i < dataSetPropIndex.length; i++, j++) {
-                    PPBitset ppBitset = PropertyEncodingConstructor.encoding(items[dataSetPropIndex[i]], propEncodingLength[j], hashFuncCount);
-                    hyperedge.addEncoding(ppBitset);
-                }
-
-                List<TreeNode> leafTreeNode = indexTree.findLeafTreeNode(hyperedge);
-                System.out.println(leafTreeNode.size());
-                for (TreeNode node : leafTreeNode)
-                    node.print();
-            }
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
-
 
     /**
      * 给定数据集构建索引树
-     * @param filePath 文件路径
-     * @param userIndex 主体属性下标
-     * @param timeIndex 时间属性下标
-     * @param periodType 时间跨度
-     * @param dataSetPropIndex 属性在数据集中的下标，默认主体属性在第一位，构建索引时按照该下标顺序拼接编码
-     * @param hashFuncCount 所使用的哈希函数个数
      */
-    public void buildTree(String filePath, int idIndex, int userIndex, int timeIndex, PeriodType periodType, int[] dataSetPropIndex, int hashFuncCount) {
-        // 根据指定文件读取获得事件记录和元数据
-        DataSetInfo dataSetInfo = DataAnalyzer.readFile(filePath, userIndex, timeIndex, periodType);
-        dataSetInfo.getOrganizer().printAllEvents();
-
+    public void buildTree(DataSetInfo dataSetInfo) {
         // 根据读取到的数据集统计信息构建索引树
         // 观察到，如果为了保证一个叶子节点内只有一个主体，那么可能会导致树的叶子层非常稀疏
         // 因此，树的构建原则是时间优先，在将编码插入叶子节点时会按照主体属性和时间顺序进行相对排序，保证主体属性相同的编码放置在一块
@@ -121,33 +70,34 @@ public class IndexTree {
                 vertexToPropOffset, propEncodingLength);
         long minTime = Long.MAX_VALUE;
         long maxTime = Long.MIN_VALUE;
-
-        int size = 0;
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
-        // 构建叶子节点
+        // 首先构建叶子结点
+        int size = 0;
         for (Map.Entry<String, Map<Long, List<Event>>> periodEntry : eventMap.entrySet()) {
             for (Map.Entry<Long, List<Event>> userEntry : periodEntry.getValue().entrySet()) {
                 for (Event event : userEntry.getValue()) {
-                    size++;
                     // 对事件进行编码（编码信息保存在树上不是在树节点上）
                     String eventDetail = event.getEventDetail();
-//                    System.out.println(eventDetail);
                     String[] items = eventDetail.split("\\t");
+                    System.out.println(eventDetail);
+
                     try {
-                        Date date  = format.parse(items[timeIndex]);
+                        Date date  = format.parse(items[items.length - 1]);
                         long time = date.getTime();
-                        DataHyperedge hyperedge = new DataHyperedge(Long.valueOf(items[idIndex]), time, numOfVertex, maxPropertyNum, propEncodingLength);
+
+                        DataHyperedge hyperedge = new DataHyperedge(Long.valueOf(items[HE_ID_INDEX]), time, numOfVertex, items.length - 2, propEncodingLength);
                         minTime = Math.min(minTime, time);  // 更新窗口时间
                         maxTime = Math.max(maxTime, time);
                         leafTreeNode.setStartTime(minTime);
                         leafTreeNode.setEndTime(maxTime);
 
-                        for (int i = 0, j = 0; i < dataSetPropIndex.length; i++, j++) {
-                            PPBitset ppBitset = PropertyEncodingConstructor.encoding(items[dataSetPropIndex[i]], propEncodingLength[j], hashFuncCount);
+                        for (int i = 1, j = 0; i < items.length - 1; i++, j++) {
+                            PPBitset ppBitset = PropertyEncodingConstructor.encoding(items[i], propEncodingLength[j], hashFuncCount);
                             hyperedge.addEncoding(ppBitset);
                         }
                         leafTreeNode.addHyperedge(hyperedge);
+                        size++;
 
                         // 当窗口达到了最大容量则新建下一个窗口，这个容量可以使用类似负载因子的优化方法，避免下一次插入直接造成节点分裂
                         if (size == windowSize) {
@@ -195,27 +145,13 @@ public class IndexTree {
             }
         }
 
+        File file = new File(SHOPPIONG_TREE_IOFO);
+        if (file.exists()) file.delete();
         printTree();
     }
 
-    // 从根节点开始打印树
-    public void printTree() {
-        Queue<TreeNode> treeNodes = new ArrayDeque<>();
-        treeNodes.offer(this.root);
-
-        while (!treeNodes.isEmpty()) {
-            TreeNode node = treeNodes.poll();
-            node.print();
-
-            if (node instanceof InternalTreeNode) {
-                for (TreeNode child : ((InternalTreeNode) node).getChildNodes())
-                    treeNodes.offer(child);
-            }
-        }
-    }
-
     // 从根节点开始找到符合条件的叶子节点
-    private List<TreeNode> findLeafTreeNode(@NotNull Hyperedge hyperedge) {
+    public List<Long> singleSearch(@NotNull Hyperedge hyperedge) {
         DataHyperedge dataHyperedge = (DataHyperedge) hyperedge;
         Queue<TreeNode> queue1 = new ArrayDeque<>();
         Queue<TreeNode> queue2 = new ArrayDeque<>();
@@ -226,9 +162,10 @@ public class IndexTree {
                 break;
 
             InternalTreeNode curNode = (InternalTreeNode) queue1.poll();
+            // TODO 采用遍历的方式进行匹配，应该可以优化成二分的方式
             for (Hyperedge edge : curNode.getDerivedHyperedges()) {
                 TreeNode node = curNode.getNodeByEdgeID(edge.getId());
-                if (hyperedge.isBitwiseSubset(edge) && node.getStartTime() <= dataHyperedge.getEventTime() && node.getEndTime() >= dataHyperedge.getEventTime())
+                if (dataHyperedge.isBitwiseSubset(edge) && node.getStartTime() <= dataHyperedge.getEventTime() && node.getEndTime() >= dataHyperedge.getEventTime())
                     queue2.offer(node);
             }
 
@@ -238,23 +175,32 @@ public class IndexTree {
             }
         }
 
+        List<Long> res = new LinkedList<>();
+        if (!queue1.isEmpty()) {
+            LeafTreeNode leafTreeNode = (LeafTreeNode) queue1.poll();
+            for (DataHyperedge edge : leafTreeNode.getHyperedges()) {
+                if (dataHyperedge.isBitwiseSubset(edge) && dataHyperedge.getEventTime() == edge.getEventTime())
+                    res.add(edge.getId());
+            }
+        }
+
         List<TreeNode> nodes = new ArrayList<>(queue1);
-        return nodes;
+        return res;
     }
 
     // 向索引树中插入元素
-    public void insert(@NotNull DataHyperedge dataHyperedge) {
-        // 从根节点开始向下一个一个寻找合适的叶节点
-        List<TreeNode> nodes = findLeafTreeNode(dataHyperedge);
-        LeafTreeNode leafTreeNode = (LeafTreeNode) nodes.get(0);
-
-        // 调用叶节点的插入方法
-        boolean success = leafTreeNode.addHyperedge(dataHyperedge);
-
-        // 判断插入结果，插入失败说明要进行节点分裂
-        if (!success)
-            splitNode(dataHyperedge, leafTreeNode);
-    }
+//    public void insert(@NotNull DataHyperedge dataHyperedge) {
+//        // 从根节点开始向下一个一个寻找合适的叶节点
+//        List<TreeNode> nodes = singleSearch(dataHyperedge);
+//        LeafTreeNode leafTreeNode = (LeafTreeNode) nodes.get(0);
+//
+//        // 调用叶节点的插入方法
+//        boolean success = leafTreeNode.addHyperedge(dataHyperedge);
+//
+//        // 判断插入结果，插入失败说明要进行节点分裂
+//        if (!success)
+//            splitNode(dataHyperedge, leafTreeNode);
+//    }
 
     /**
      * @param dataHyperedge  新插入的数据超边
@@ -332,24 +278,52 @@ public class IndexTree {
         }
     }
 
-    // 在索引树中查询符合条件的数据超边
-    public List<Hyperedge> search(@NotNull Hyperedge hyperedge) {
-        List<TreeNode> nodes = findLeafTreeNode(hyperedge);
-        List<Hyperedge> edges = new ArrayList<>();
+    // 从根节点开始打印树
+    public void printTree() {
+        Queue<TreeNode> treeNodes = new ArrayDeque<>();
+        treeNodes.offer(this.root);
 
-        for (TreeNode node : nodes) {
-            node = (LeafTreeNode) node;
-            for (Hyperedge edge : ((LeafTreeNode) node).getHyperedges()) {
-                if (hyperedge.isBitwiseSubset(edge))
-                    edges.add(edge);
+        while (!treeNodes.isEmpty()) {
+            TreeNode node = treeNodes.poll();
+            node.print();
+
+            if (node instanceof InternalTreeNode) {
+                for (TreeNode child : ((InternalTreeNode) node).getChildNodes())
+                    treeNodes.offer(child);
             }
         }
-
-        return edges;
     }
 
     public TreeNode getRoot() {
         return this.root;
+    }
+
+    public int getWindowSize() {
+        return windowSize;
+    }
+
+    public int getNumOfVertex() {
+        return numOfVertex;
+    }
+
+    public int getMaxPropertyNum() {
+        return maxPropertyNum;
+    }
+
+    public int[] getVertexToPropOffset() {
+        return vertexToPropOffset;
+    }
+
+    public int[] getPropEncodingLength() {
+        return propEncodingLength;
+    }
+
+    public int getLayer() {
+        return layer;
+    }
+
+    public int getHashFuncCount() {
+        return hashFuncCount;
     }
 }
 
