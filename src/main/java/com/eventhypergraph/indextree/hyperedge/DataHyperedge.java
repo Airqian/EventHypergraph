@@ -2,7 +2,7 @@ package com.eventhypergraph.indextree.hyperedge;
 
 
 import com.eventhypergraph.encoding.PPBitset;
-import com.sun.istack.internal.NotNull;
+
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,41 +19,24 @@ public class DataHyperedge extends Hyperedge implements Comparable<DataHyperedge
     // 超边包含的顶点id
     private List<Long> vertexIds;
 
-    // HACK: 用来测试超边的排序功能，没有实际意义
-    public DataHyperedge(long eventTime) {
-        super(1, 1, 1, new int[]{1});
-        this.eventTime = eventTime;
-        vertexIds = new ArrayList<>();
-        setEncoding(new HyperedgeEncoding(100, 10));
-    }
-
-    // 该构造函数在进行查询的时候会用到
-    public DataHyperedge(long eventTime, int numOfVertex, int maxPropertyNum,
-                         int[] vertexToPropOffset) {
-        super(numOfVertex, maxPropertyNum, vertexToPropOffset);
+    // 构造查询超边时会用到
+    public DataHyperedge(long eventTime, int numOfVertex, int bitsetNum) {
+        super(numOfVertex, bitsetNum);
 
         this.eventTime = eventTime;
         vertexIds = new ArrayList<>();
     }
 
-    public DataHyperedge(long id, long eventTime, int numOfVertex, int maxPropertyNum,
-                         int[] vertexToPropOffset) {
-        super(id, numOfVertex, maxPropertyNum, vertexToPropOffset);
-
-        this.eventTime = eventTime;
-        vertexIds = new ArrayList<>();
-    }
-
-    public DataHyperedge(long id, int eventTypeId, long eventTime, int numOfVertex,
-                         int maxPropertyNum, int[] vertexToPropOffset) {
-        super(id, eventTypeId, numOfVertex, maxPropertyNum, vertexToPropOffset);
+    // 读取数据集构建树时会遇到
+    public DataHyperedge(long id, long eventTime, int numOfVertex, int bitsetNum) {
+        super(id, numOfVertex, bitsetNum);
 
         this.eventTime = eventTime;
         vertexIds = new ArrayList<>();
     }
 
     // 计算与给定超边之间的权重增量
-    public double getWeightIncrease(@NotNull DataHyperedge dataHyperedge) {
+    public double getWeightIncrease( DataHyperedge dataHyperedge) {
         double res = 0.0;
         int len = dataHyperedge.getEncodingLength();
 

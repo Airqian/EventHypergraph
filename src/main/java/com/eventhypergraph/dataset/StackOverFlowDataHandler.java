@@ -4,7 +4,7 @@ import java.io.*;
 import java.util.HashSet;
 import java.util.LinkedList;
 
-public class StackOverFlowData {
+public class StackOverFlowDataHandler {
     // 节点标签文件
     private static final String NODE_LABELS = "src/main/java/com/eventhypergraph/dataset/coauth-MAG-Geology-full/coauth-MAG-Geology-full-node-labels.txt";
 

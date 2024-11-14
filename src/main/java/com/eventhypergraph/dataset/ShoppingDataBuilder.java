@@ -13,7 +13,7 @@ import java.util.*;
 import static com.eventhypergraph.dataset.FilePathConstants.*;
 
 
-public class DataBuilder {
+public class ShoppingDataBuilder {
     // mock 购物数据集
     @Test
     public void mockShoppingEvent() {

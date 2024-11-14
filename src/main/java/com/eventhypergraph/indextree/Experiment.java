@@ -4,15 +4,12 @@ import com.eventhypergraph.encoding.PPBitset;
 import com.eventhypergraph.encoding.PropertyEncodingConstructor;
 import com.eventhypergraph.encoding.util.PeriodType;
 import com.eventhypergraph.indextree.hyperedge.DataHyperedge;
-import com.eventhypergraph.indextree.treeNode.TreeNode;
 import com.eventhypergraph.indextree.util.DataAnalyzer;
 import com.eventhypergraph.indextree.util.DataSetInfo;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
@@ -31,16 +28,11 @@ public class Experiment {
 
         // 构建索引树
         int windowSize = 10;
-        int numOfVertex = 4;
+        int encodingLength = 100; // 统一的编码长度
         int maxPropertyNum = dataSetInfo.getMaxPropertyNum(); // 单条超边的最大属性个数
-        int[] propEncodingLength = new int[maxPropertyNum];   // 每个属性的编码长度
-        Arrays.fill(propEncodingLength, 10);
-
-        // TODO 需要修改这个
-        int[] vertexToPropOffset = new int[]{1, 2, 3, 4};
         int hashFuncCount = 3;
 
-        IndexTree indexTree = new IndexTree(windowSize, numOfVertex, maxPropertyNum, propEncodingLength, vertexToPropOffset, hashFuncCount);
+        IndexTree indexTree = new IndexTree(windowSize, maxPropertyNum, encodingLength, hashFuncCount);
         indexTree.buildTree(dataSetInfo);
         return indexTree;
     }
@@ -53,21 +45,22 @@ public class Experiment {
             String line;
             SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
-            int numOfVertex = indexTree.getNumOfVertex();
-            int maxPropertyNum = indexTree.getMaxPropertyNum();
-            int[] propEncodingLength = indexTree.getPropEncodingLength();
+            int bitsetNum = indexTree.getBitsetNum();
+            int encodingLength = indexTree.getEncodingLength();
             int hashFuncCount = indexTree.getHashFuncCount();
 
             while ((line = bufferedReader.readLine()) != null) {
                 String[] items = line.split("\\t");
                 Date date  = format.parse(items[items.length - 1]);
                 long time = date.getTime();
-                DataHyperedge hyperedge = new DataHyperedge(time, numOfVertex, items.length - 2, propEncodingLength);
+                DataHyperedge hyperedge = new DataHyperedge(time,items.length - 2, 1);
 
+                PPBitset totalBitSet = new PPBitset(encodingLength);
                 for (int i = 1, j = 0; i < items.length - 1; i++, j++) {
-                    PPBitset ppBitset = PropertyEncodingConstructor.encoding(items[i], propEncodingLength[j], hashFuncCount);
-                    hyperedge.addEncoding(ppBitset);
+                    PPBitset ppBitset = PropertyEncodingConstructor.encoding(items[i], encodingLength, hashFuncCount);
+                    totalBitSet.or(ppBitset);
                 }
+                hyperedge.addEncoding(totalBitSet);
 
                 List<Long> ids = indexTree.singleSearch(hyperedge);
                 for (Long id : ids)

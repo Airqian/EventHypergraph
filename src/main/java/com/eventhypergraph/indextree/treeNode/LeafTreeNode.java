@@ -4,7 +4,6 @@ import com.eventhypergraph.encoding.Exception.TimeOutOfBoundException;
 import com.eventhypergraph.encoding.util.Pair;
 import com.eventhypergraph.indextree.hyperedge.DataHyperedge;
 import com.eventhypergraph.indextree.hyperedge.Hyperedge;
-import com.sun.istack.internal.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,13 +22,13 @@ public class LeafTreeNode extends TreeNode {
     // 当和DerivedHyperedge行为没啥太大的差别时再统一为Hyperedge
     private List<DataHyperedge> dataHyperedges;
 
-    public LeafTreeNode(int capacity, int numOfVertex, int maxPropertyNum, int[] vertexToPropOffset, int[] propEncodingLength) {
-        super(capacity, numOfVertex, maxPropertyNum, vertexToPropOffset, propEncodingLength);
+    public LeafTreeNode(int capacity, int bitsetNum, int encodingLength) {
+        super(capacity, bitsetNum, encodingLength);
         dataHyperedges = new ArrayList<>();
     }
 
-    public LeafTreeNode(long startTime, long endTime, int capacity, int numOfVertex, int maxPropertyNum, int[] vertexToPropOffset,  int[] propEncodingLength) {
-        super(startTime, endTime, capacity, numOfVertex, maxPropertyNum, vertexToPropOffset, propEncodingLength);
+    public LeafTreeNode(long startTime, long endTime, int capacity, int bitsetNum, int encodingLength) {
+        super(startTime, endTime, capacity, bitsetNum, encodingLength);
 
         dataHyperedges = new ArrayList<>();
     }
@@ -43,7 +42,7 @@ public class LeafTreeNode extends TreeNode {
      *
      * @param dataHyperedge
      */
-    public boolean addHyperedge(@NotNull DataHyperedge dataHyperedge) {
+    public boolean addHyperedge(DataHyperedge dataHyperedge) {
         if (dataHyperedge.getEventTime() < getStartTime() || dataHyperedge.getEventTime() > getEndTime())
             throw new TimeOutOfBoundException("The occurrence time of the event to be inserted is not within the time window.");
 
@@ -64,7 +63,7 @@ public class LeafTreeNode extends TreeNode {
 
 
 
-    public void addHyperedge(@NotNull List<DataHyperedge> dataHyperedges) {
+    public void addHyperedge( List<DataHyperedge> dataHyperedges) {
         for (int i = 0; i < dataHyperedges.size(); i++)
             addHyperedge(dataHyperedges.get(i));
     }
@@ -89,7 +88,7 @@ public class LeafTreeNode extends TreeNode {
 
 
     // 二分查找搜索给定hyperedge可插入的位置
-    public int binarySort(@NotNull DataHyperedge edge) {
+    public int binarySort( DataHyperedge edge) {
         int left = 0;
         int right = dataHyperedges.size() - 1;
 
@@ -111,7 +110,7 @@ public class LeafTreeNode extends TreeNode {
     }
 
     // 删除窗口中已有的超边
-    public void remove(@NotNull DataHyperedge edge) {
+    public void remove( DataHyperedge edge) {
         int index = binarySort(edge);
         if (edge.getId() == dataHyperedges.get(index).getId()) {
             dataHyperedges.remove(index);

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="WebServers">
+    <option name="servers">
+      <webServer id="438e67d9-77d2-46cf-9e93-23b07ea4d4d1" name="dblab">
+        <fileTransfer rootFolder="/home/qian.wang" accessType="SFTP" host="211.81.55.169" port="22" sshConfigId="8b546b61-c0bb-4e5d-948c-8942d0ee5b11" sshConfig="qian.wang@211.81.55.169:22 password">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" keepAliveTimeout="0" passiveMode="true" shareSSLContext="true" />
+          </advancedOptions>
+        </fileTransfer>
+      </webServer>
+    </option>
+  </component>
+</project>

@@ -6,7 +6,7 @@ import com.eventhypergraph.encoding.util.Pair;
 import com.eventhypergraph.indextree.hyperedge.DataHyperedge;
 import com.eventhypergraph.indextree.hyperedge.Hyperedge;
 import com.eventhypergraph.indextree.util.IDGenerator;
-import com.sun.istack.internal.NotNull;
+
 
 import javax.crypto.spec.PSource;
 import java.io.BufferedWriter;
@@ -55,8 +55,7 @@ public class TreeNode {
 
     private Hyperedge topHyperedge;
 
-    public TreeNode(int capacity, int numOfVertex, int maxPropertyNum,
-                    int[] vertexToPropOffset, int[] propEncodingLength) {
+    public TreeNode(int capacity, int bitsetNum, int encodingLength) {
         if (capacity <= 0)
             throw new IllegalArgumentException(String.format("The capacity cannot be 0. capacity = %d", capacity));
 
@@ -68,13 +67,13 @@ public class TreeNode {
         this.startTime = Long.MAX_VALUE;
         this.endTime = Long.MIN_VALUE;
 
-        this.initialGlobalBits(maxPropertyNum);
-        this.initialTopHyperedge(numOfVertex, maxPropertyNum, vertexToPropOffset, propEncodingLength);
+        this.initialGlobalBits(bitsetNum);
+        this.initialTopHyperedge(bitsetNum, encodingLength);
     }
 
     // 叶节点和中间节点的容量可以用全局静态常量去设置
-    public TreeNode(long startTime, long endTime,int capacity, int numOfVertex, int maxPropertyNum, int[] vertexToPropOffset, int[] propEncodingLength) {
-        this(capacity, numOfVertex, maxPropertyNum, vertexToPropOffset, propEncodingLength);
+    public TreeNode(long startTime, long endTime,int capacity, int maxPropertyNum, int encodingLength) {
+        this(capacity, maxPropertyNum, encodingLength);
 
         if (startTime >= endTime)
             throw new IllegalArgumentException(String.format("endTime = %d cannot be less than startTime = %d.", endTime, startTime));
@@ -83,7 +82,7 @@ public class TreeNode {
         this.endTime = endTime;
 
         this.initialGlobalBits(maxPropertyNum);
-        this.initialTopHyperedge(numOfVertex, maxPropertyNum, vertexToPropOffset, propEncodingLength);
+        this.initialTopHyperedge(maxPropertyNum, encodingLength);
     }
 
     public void initialGlobalBits(int maxPropertyNum) {
@@ -93,18 +92,13 @@ public class TreeNode {
         }
     }
 
-    public void initialTopHyperedge(int numOfVertex, int maxPropertyNum, int[] vertexToPropOffset, int[] propEncodingLength) {
-        if (propEncodingLength.length != maxPropertyNum)
-            throw new IllegalArgumentException(String.format("The length of propEncodingLength = %d is not equal to maxPropertyNum = %d.", propEncodingLength.length, maxPropertyNum));
-
-        this.topHyperedge = new Hyperedge(IDGenerator.generateNodeId(), numOfVertex, maxPropertyNum, vertexToPropOffset);
-        for (int i = 0; i < maxPropertyNum; i++) {
-            topHyperedge.addEncoding(new PPBitset(propEncodingLength[i]));
-        }
+    public void initialTopHyperedge(int maxPropertyNum, int encodingLength) {
+        this.topHyperedge = new Hyperedge(maxPropertyNum);
+        topHyperedge.addEncoding(new PPBitset(encodingLength));
     }
 
     // 更新本节点的 seed hyperedge
-    public void updateSeedAndCardinality(@NotNull Hyperedge hyperedge) {
+    public void updateSeedAndCardinality( Hyperedge hyperedge) {
         int curCardinality = hyperedge.cardinality();
 
         if (seedHyperedges.size() < 2) {
@@ -123,7 +117,7 @@ public class TreeNode {
 
 
     // 用 hyperedge 更新本节点的 globalbits 和 topHyperedge
-    public void updateTopHyperedge(@NotNull Hyperedge hyperedge) {
+    public void updateTopHyperedge( Hyperedge hyperedge) {
         // 对超边中的每个属性编码进行操作
         for (int i = 0; i < hyperedge.getEncoding().size(); i++) {
             if (globalbits.get(i) == null)
@@ -138,7 +132,7 @@ public class TreeNode {
     }
 
     // 根据新插入的超边更新对应的父超边以及父节点的属性信息(自底向上具有传递性)
-    public void updateParent(@NotNull Hyperedge hyperedge) {
+    public void updateParent( Hyperedge hyperedge) {
         TreeNode pNode = getParentNode();
         Hyperedge pEdge = getParentEdge();
 
@@ -179,8 +173,6 @@ public class TreeNode {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-
-
     }
 
     protected String printEdges() {

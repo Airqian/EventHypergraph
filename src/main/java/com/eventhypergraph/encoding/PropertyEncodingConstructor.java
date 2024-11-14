@@ -3,7 +3,7 @@ package com.eventhypergraph.encoding;
 import com.eventhypergraph.encoding.util.HashFunction;
 import com.eventhypergraph.encoding.util.HashFunctionInterface;
 import com.eventhypergraph.encoding.util.Triple;
-import com.sun.istack.internal.NotNull;
+
 
 
 public class PropertyEncodingConstructor {

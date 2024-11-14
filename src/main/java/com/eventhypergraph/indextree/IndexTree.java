@@ -9,7 +9,6 @@ import com.eventhypergraph.indextree.treeNode.LeafTreeNode;
 import com.eventhypergraph.indextree.treeNode.TreeNode;
 import com.eventhypergraph.indextree.util.DataSetInfo;
 import com.eventhypergraph.indextree.util.Event;
-import com.sun.istack.internal.NotNull;
 
 import java.io.*;
 import java.text.ParseException;
@@ -24,36 +23,19 @@ public class IndexTree {
 
     private int windowSize;
 
-    // 元数据：超边中包含的顶点数量
-    private int numOfVertex;
-
     // 元数据：该索引树超边中包含的最大属性数
-    private int maxPropertyNum;
+    private int bitsetNum;
 
-    /**
-     * 元数据：顶点到属性映射偏移量，属性总数为右边界-1
-     * 假设用户实体的定义包括属性 userName、phoneNumber 和 IDCard，而 AOI 实体的定义包括属性 AOIName 和 city。
-     * vertexToPropOffset 数字列表为 [4, 6]。总共有 6 个属性，其中用户的属性集合为 [1, 4)，AOI 的属性集合为 [4, 6)。
-     */
-    private int[] vertexToPropOffset;
-
-    // 元数据：属性编码的长度
-    private int[] propEncodingLength;
+    private int encodingLength;
 
     private int hashFuncCount;
 
     private int layer;
 
-    public IndexTree(int windowSize, int numOfVertex, int maxPropertyNum, int[] propEncodingLength,
-                     int[] vertexToPropOffset, int hashFuncCount) {
-        if (maxPropertyNum != propEncodingLength.length)
-            throw new IllegalArgumentException("属性个数与编码长度列表不匹配");
-
+    public IndexTree(int windowSize, int bitsetNum, int encodingLength, int hashFuncCount) {
         this.windowSize = windowSize;
-        this.propEncodingLength = propEncodingLength;
-        this.numOfVertex = numOfVertex;
-        this.maxPropertyNum = maxPropertyNum;
-        this.vertexToPropOffset = vertexToPropOffset;
+        this.encodingLength = encodingLength;
+        this.bitsetNum = bitsetNum;
         this.hashFuncCount = hashFuncCount;
     }
 
@@ -65,9 +47,9 @@ public class IndexTree {
         // 观察到，如果为了保证一个叶子节点内只有一个主体，那么可能会导致树的叶子层非常稀疏
         // 因此，树的构建原则是时间优先，在将编码插入叶子节点时会按照主体属性和时间顺序进行相对排序，保证主体属性相同的编码放置在一块
         Map<String, Map<Long, List<Event>>> eventMap = dataSetInfo.getOrganizer().getEventMap();
+        int bitsetNum = 1;
         Queue<TreeNode> treeNodes = new ArrayDeque<>();
-        LeafTreeNode leafTreeNode = new LeafTreeNode(windowSize, numOfVertex, maxPropertyNum,
-                vertexToPropOffset, propEncodingLength);
+        LeafTreeNode leafTreeNode = new LeafTreeNode(windowSize, bitsetNum, encodingLength);
         long minTime = Long.MAX_VALUE;
         long maxTime = Long.MIN_VALUE;
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -86,23 +68,25 @@ public class IndexTree {
                         Date date  = format.parse(items[items.length - 1]);
                         long time = date.getTime();
 
-                        DataHyperedge hyperedge = new DataHyperedge(Long.valueOf(items[HE_ID_INDEX]), time, numOfVertex, items.length - 2, propEncodingLength);
+                        DataHyperedge hyperedge = new DataHyperedge(Long.valueOf(items[HE_ID_INDEX]), time, items.length - 2, bitsetNum);
                         minTime = Math.min(minTime, time);  // 更新窗口时间
                         maxTime = Math.max(maxTime, time);
                         leafTreeNode.setStartTime(minTime);
                         leafTreeNode.setEndTime(maxTime);
 
+                        PPBitset totalBitSet = new PPBitset(encodingLength);
                         for (int i = 1, j = 0; i < items.length - 1; i++, j++) {
-                            PPBitset ppBitset = PropertyEncodingConstructor.encoding(items[i], propEncodingLength[j], hashFuncCount);
-                            hyperedge.addEncoding(ppBitset);
+                            PPBitset temp = PropertyEncodingConstructor.encoding(items[i], encodingLength, hashFuncCount);
+                            totalBitSet = totalBitSet.or(temp);
                         }
+                        hyperedge.addEncoding(totalBitSet);
                         leafTreeNode.addHyperedge(hyperedge);
                         size++;
 
                         // 当窗口达到了最大容量则新建下一个窗口，这个容量可以使用类似负载因子的优化方法，避免下一次插入直接造成节点分裂
                         if (size == windowSize) {
                             treeNodes.offer(leafTreeNode);
-                            leafTreeNode = new LeafTreeNode(windowSize, numOfVertex, maxPropertyNum, vertexToPropOffset, propEncodingLength);
+                            leafTreeNode = new LeafTreeNode(windowSize, bitsetNum, encodingLength);
                             minTime = Long.MAX_VALUE;
                             maxTime = Long.MIN_VALUE;
 
@@ -127,7 +111,7 @@ public class IndexTree {
                 }
             }
 
-            InternalTreeNode parentNode = new InternalTreeNode(windowSize, numOfVertex, maxPropertyNum, vertexToPropOffset, propEncodingLength);
+            InternalTreeNode parentNode = new InternalTreeNode(windowSize, bitsetNum,  encodingLength);
             // TODO 取出对应数量的子节点构建父节点(后续需要算法优化，子节点的数量有范围)
             for (int i = 1; i <= k; i++) {
                 TreeNode childNode = treeNodes.poll();
@@ -151,7 +135,7 @@ public class IndexTree {
     }
 
     // 从根节点开始找到符合条件的叶子节点
-    public List<Long> singleSearch(@NotNull Hyperedge hyperedge) {
+    public List<Long> singleSearch(Hyperedge hyperedge) {
         DataHyperedge dataHyperedge = (DataHyperedge) hyperedge;
         Queue<TreeNode> queue1 = new ArrayDeque<>();
         Queue<TreeNode> queue2 = new ArrayDeque<>();
@@ -206,48 +190,48 @@ public class IndexTree {
      * @param dataHyperedge  新插入的数据超边
      * @param curleafNode    需要进行分裂的节点
      */
-    private void splitNode(@NotNull DataHyperedge dataHyperedge, @NotNull LeafTreeNode curleafNode) {
-        // 1. 创建新的叶节点以及叶节点在父节点中的DerivedHyperedge
-        InternalTreeNode parentNode = curleafNode.getParentNode();
-        LeafTreeNode newLeafNode = new LeafTreeNode(curleafNode.getStartTime(), curleafNode.getEndTime(), // 时间容量和curleafNode一样
-                curleafNode.getCapacity(), numOfVertex, maxPropertyNum, vertexToPropOffset, propEncodingLength);
-        Hyperedge newParentEdge = new Hyperedge(dataHyperedge.getEventTypeId(), dataHyperedge.getNumOfVertex(),
-                dataHyperedge.getMaxPropertyNum(), dataHyperedge.getVertexToPropOffset());
-
-        // 2. 获得两条seed edge（另原节点中的seed与新插入超边进行比较）以及要进行分配的所有超边
-        curleafNode.updateSeedAndCardinality(dataHyperedge);
-        DataHyperedge seed1 = (DataHyperedge) curleafNode.getSeedHyperedges().get(0).getFirst();
-        DataHyperedge seed2 = (DataHyperedge) curleafNode.getSeedHyperedges().get(1).getFirst();
-
-        List<DataHyperedge> edges = curleafNode.getHyperedges();
-        edges.add(dataHyperedge);
-        edges.remove(seed1);
-        edges.remove(seed2);
-
-        // 3. 清空curleafNode的seed、cardinality、globalbits等相关信息
-        curleafNode.clear();
-        curleafNode.getParentEdge().clear();
-
-        // 4. 新叶节点和旧叶节点分别分配一条 seed Hyperedge，接着计算权重增量开始分配超边（不要重复插入）
-        curleafNode.addHyperedge(seed1);
-        newLeafNode.addHyperedge(seed2);
-        extracted(curleafNode, newLeafNode, seed1, seed2, edges);
-
-        // TODO：此处逻辑再看看，理论上只要父节点往上更新就可以
-        // 5. 根据新插入的超边更新两个子节点的父超边
-        parentNode.updateParent(dataHyperedge);
-        // newLeafNode.updateParentEdgeByEdge(dataHyperedge);
-
-        // 6. 更新父节点的globalbits，并将新添加的属性信息在树中向上传播（继续用dataHyperedge往上更新即可，并且暂时不考虑父节点的seed hyperedge变化）
-        if (parentNode != null) {
-            parentNode.updateTopHyperedge(dataHyperedge);
-            parentNode = parentNode.getParentNode();
-        }
-
-        // 在父节点中添加新的叶节点并建立映射
-        newLeafNode.setParentNode(parentNode);
-        newLeafNode.setParentEdge(newParentEdge);
-        parentNode.addChildNode(newParentEdge, newLeafNode);
+    private void splitNode(DataHyperedge dataHyperedge, LeafTreeNode curleafNode) {
+//        // 1. 创建新的叶节点以及叶节点在父节点中的DerivedHyperedge
+//        InternalTreeNode parentNode = curleafNode.getParentNode();
+//        LeafTreeNode newLeafNode = new LeafTreeNode(curleafNode.getStartTime(), curleafNode.getEndTime(), // 时间容量和curleafNode一样
+//                curleafNode.getCapacity(), bitsetNum, vertexToPropOffset, propEncodingLength);
+//        Hyperedge newParentEdge = new Hyperedge(dataHyperedge.getEventTypeId(), dataHyperedge.getNumOfVertex(),
+//                dataHyperedge.getMaxPropertyNum(), dataHyperedge.getVertexToPropOffset());
+//
+//        // 2. 获得两条seed edge（另原节点中的seed与新插入超边进行比较）以及要进行分配的所有超边
+//        curleafNode.updateSeedAndCardinality(dataHyperedge);
+//        DataHyperedge seed1 = (DataHyperedge) curleafNode.getSeedHyperedges().get(0).getFirst();
+//        DataHyperedge seed2 = (DataHyperedge) curleafNode.getSeedHyperedges().get(1).getFirst();
+//
+//        List<DataHyperedge> edges = curleafNode.getHyperedges();
+//        edges.add(dataHyperedge);
+//        edges.remove(seed1);
+//        edges.remove(seed2);
+//
+//        // 3. 清空curleafNode的seed、cardinality、globalbits等相关信息
+//        curleafNode.clear();
+//        curleafNode.getParentEdge().clear();
+//
+//        // 4. 新叶节点和旧叶节点分别分配一条 seed Hyperedge，接着计算权重增量开始分配超边（不要重复插入）
+//        curleafNode.addHyperedge(seed1);
+//        newLeafNode.addHyperedge(seed2);
+//        extracted(curleafNode, newLeafNode, seed1, seed2, edges);
+//
+//        // TODO：此处逻辑再看看，理论上只要父节点往上更新就可以
+//        // 5. 根据新插入的超边更新两个子节点的父超边
+//        parentNode.updateParent(dataHyperedge);
+//        // newLeafNode.updateParentEdgeByEdge(dataHyperedge);
+//
+//        // 6. 更新父节点的globalbits，并将新添加的属性信息在树中向上传播（继续用dataHyperedge往上更新即可，并且暂时不考虑父节点的seed hyperedge变化）
+//        if (parentNode != null) {
+//            parentNode.updateTopHyperedge(dataHyperedge);
+//            parentNode = parentNode.getParentNode();
+//        }
+//
+//        // 在父节点中添加新的叶节点并建立映射
+//        newLeafNode.setParentNode(parentNode);
+//        newLeafNode.setParentEdge(newParentEdge);
+//        parentNode.addChildNode(newParentEdge, newLeafNode);
     }
 
     private void extracted(LeafTreeNode curleafNode, LeafTreeNode newLeafNode, DataHyperedge seed1, DataHyperedge seed2, List<DataHyperedge> edges) {
@@ -302,20 +286,14 @@ public class IndexTree {
         return windowSize;
     }
 
-    public int getNumOfVertex() {
-        return numOfVertex;
+
+    public int getBitsetNum() {
+        return bitsetNum;
     }
 
-    public int getMaxPropertyNum() {
-        return maxPropertyNum;
-    }
 
-    public int[] getVertexToPropOffset() {
-        return vertexToPropOffset;
-    }
-
-    public int[] getPropEncodingLength() {
-        return propEncodingLength;
+    public int getEncodingLength() {
+        return encodingLength;
     }
 
     public int getLayer() {
