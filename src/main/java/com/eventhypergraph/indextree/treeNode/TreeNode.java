@@ -3,20 +3,16 @@ package com.eventhypergraph.indextree.treeNode;
 import cn.hutool.core.util.IdUtil;
 import com.eventhypergraph.encoding.PPBitset;
 import com.eventhypergraph.encoding.util.Pair;
-import com.eventhypergraph.indextree.hyperedge.DataHyperedge;
 import com.eventhypergraph.indextree.hyperedge.Hyperedge;
-import com.eventhypergraph.indextree.util.IDGenerator;
 
 
-import javax.crypto.spec.PSource;
 import java.io.BufferedWriter;
-import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
-import static com.eventhypergraph.dataset.FilePathConstants.SHOPPIONG_TREE_IOFO;
+import static com.eventhypergraph.dataSetHandler.FilePathConstants.SHOPPIONG_TREE_IOFO;
 
 /**
  * 树节点父类，定义了时间范围、节点容量等公共字段
@@ -51,11 +47,11 @@ public class TreeNode {
 
     // 记录该节点中所有超边属性编码上的位为1的情况
     // TODO globalbits和topHyperedge的作用重了
-    private List<Set<Integer>> globalbits;
+    private Set<Integer> globalbits;
 
     private Hyperedge topHyperedge;
 
-    public TreeNode(int capacity, int bitsetNum, int encodingLength) {
+    public TreeNode(int capacity, int encodingLength) {
         if (capacity <= 0)
             throw new IllegalArgumentException(String.format("The capacity cannot be 0. capacity = %d", capacity));
 
@@ -67,13 +63,13 @@ public class TreeNode {
         this.startTime = Long.MAX_VALUE;
         this.endTime = Long.MIN_VALUE;
 
-        this.initialGlobalBits(bitsetNum);
-        this.initialTopHyperedge(bitsetNum, encodingLength);
+        this.initialGlobalBits();
+        this.initialTopHyperedge(encodingLength);
     }
 
     // 叶节点和中间节点的容量可以用全局静态常量去设置
-    public TreeNode(long startTime, long endTime,int capacity, int maxPropertyNum, int encodingLength) {
-        this(capacity, maxPropertyNum, encodingLength);
+    public TreeNode(long startTime, long endTime, int capacity, int encodingLength) {
+        this(capacity, encodingLength);
 
         if (startTime >= endTime)
             throw new IllegalArgumentException(String.format("endTime = %d cannot be less than startTime = %d.", endTime, startTime));
@@ -81,24 +77,21 @@ public class TreeNode {
         this.startTime = startTime;
         this.endTime = endTime;
 
-        this.initialGlobalBits(maxPropertyNum);
-        this.initialTopHyperedge(maxPropertyNum, encodingLength);
+        this.initialGlobalBits();
+        this.initialTopHyperedge(encodingLength);
     }
 
-    public void initialGlobalBits(int maxPropertyNum) {
-        this.globalbits = new ArrayList<>();
-        for (int i = 0; i < maxPropertyNum; i++) {
-            globalbits.add(new HashSet<>());
-        }
+    public void initialGlobalBits() {
+        this.globalbits = new HashSet<>();
     }
 
-    public void initialTopHyperedge(int maxPropertyNum, int encodingLength) {
-        this.topHyperedge = new Hyperedge(maxPropertyNum);
-        topHyperedge.addEncoding(new PPBitset(encodingLength));
+    public void initialTopHyperedge(int encodingLength) {
+        this.topHyperedge = new Hyperedge(encodingLength);
+        topHyperedge.setEncoding(new PPBitset(encodingLength));
     }
 
     // 更新本节点的 seed hyperedge
-    public void updateSeedAndCardinality( Hyperedge hyperedge) {
+    public void updateSeedAndCardinality(Hyperedge hyperedge) {
         int curCardinality = hyperedge.cardinality();
 
         if (seedHyperedges.size() < 2) {
@@ -117,22 +110,17 @@ public class TreeNode {
 
 
     // 用 hyperedge 更新本节点的 globalbits 和 topHyperedge
-    public void updateTopHyperedge( Hyperedge hyperedge) {
-        // 对超边中的每个属性编码进行操作
-        for (int i = 0; i < hyperedge.getEncoding().size(); i++) {
-            if (globalbits.get(i) == null)
-                globalbits.set(i, new HashSet<>());
-
-            List<Integer> bits = hyperedge.getEncoding().getProperty(i).getAllOneBits();
-            for (int bit : bits) {
-                globalbits.get(i).add(bit);
-                topHyperedge.getEncoding().getProperty(i).set(bit, true);
-            }
+    public void updateTopHyperedge(Hyperedge hyperedge) {
+        List<Integer> bits = hyperedge.getEncoding().getAllOneBits();
+        for (int bit : bits) {
+            globalbits.add(bit);
+            topHyperedge.getEncoding().set(bit, true);
         }
+
     }
 
     // 根据新插入的超边更新对应的父超边以及父节点的属性信息(自底向上具有传递性)
-    public void updateParent( Hyperedge hyperedge) {
+    public void updateParent(Hyperedge hyperedge) {
         TreeNode pNode = getParentNode();
         Hyperedge pEdge = getParentEdge();
 
@@ -146,7 +134,7 @@ public class TreeNode {
         }
     }
 
-    public void print(){
+    public void print() {
         BufferedWriter writer;
 
         try {
@@ -192,14 +180,12 @@ public class TreeNode {
     public void printGlobalBits() {
         StringBuilder builder = new StringBuilder();
         builder.append("GlobalBits: ");
-        for (Set<Integer> set : this.getGlobalbits()) {
-            builder.append("{");
-            for (int bit : set) {
-                builder.append(bit + ", ");
-            }
-            builder.delete(builder.length() - 2, builder.length());
-            builder.append("} ");
+        builder.append("{");
+        for (int bit : this.getGlobalbits()) {
+            builder.append(bit + ", ");
         }
+        builder.delete(builder.length() - 2, builder.length());
+        builder.append("} ");
         System.out.println(builder);
     }
 
@@ -255,7 +241,7 @@ public class TreeNode {
         this.parentEdge = parentEdge;
     }
 
-    public List<Set<Integer>> getGlobalbits() {
+    public Set<Integer> getGlobalbits() {
         return globalbits;
     }
 

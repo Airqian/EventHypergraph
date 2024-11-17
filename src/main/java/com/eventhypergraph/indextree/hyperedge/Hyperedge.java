@@ -2,12 +2,8 @@ package com.eventhypergraph.indextree.hyperedge;
 
 import cn.hutool.core.util.IdUtil;
 import com.eventhypergraph.encoding.PPBitset;
-import com.eventhypergraph.encoding.PropertyEncodingConstructor;
-import com.eventhypergraph.encoding.util.Triple;
-import com.eventhypergraph.indextree.util.IDGenerator;
 
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class Hyperedge {
@@ -20,52 +16,46 @@ public class Hyperedge {
     // 该事件超边包含的顶点数
     private int numOfVertex;
 
-    private int bitsetNum;
+    private int encodingLength;
 
-    private HyperedgeEncoding encoding;
+    private PPBitset encoding;
+
 
     // 此构造方法用于Hyperedge#clone()方法以及节点的topHyperedge的initial方法
-    public Hyperedge(int bitsetNum) {
+    public Hyperedge(int encodingLength) {
         this.id = IdUtil.getSnowflakeNextId();
         this.numOfVertex = Integer.MAX_VALUE;
-        this.bitsetNum = bitsetNum;
-        this.encoding = new HyperedgeEncoding(id, bitsetNum);
+        this.encodingLength = encodingLength;
+        this.encoding = new PPBitset(encodingLength);
     }
 
     // 构造查询超边时会用到
-    public Hyperedge(int numOfVertex, int bitsetNum) {
+    public Hyperedge(int numOfVertex, int encodingLength) {
         this.id = IdUtil.getSnowflakeNextId();
         this.numOfVertex = numOfVertex;
-        this.bitsetNum = bitsetNum;
-        this.encoding = new HyperedgeEncoding(id, bitsetNum);
+        this.encodingLength = encodingLength;
+        this.encoding = new PPBitset(encodingLength);
     }
 
     // 读取数据集构建超边时会用到
-    public Hyperedge(long id, int numOfVertex, int bitsetNum) {
+    public Hyperedge(long id, int numOfVertex, int encodingLength) {
         this.id = id;
         this.numOfVertex = numOfVertex;
-        this.bitsetNum = bitsetNum;
-        this.encoding = new HyperedgeEncoding(id, bitsetNum);
-    }
-
-    public PPBitset getEncodingAt(int index) {
-        if (index >= encoding.size() || index < 0)
-            throw new ArrayIndexOutOfBoundsException("索引出界");
-        return this.encoding.getProperty(index);
+        this.encodingLength = encodingLength;
+        this.encoding = new PPBitset(encodingLength);
     }
 
     // 将编码中所有的1全部置为0
     public void clear() {
         for (int i = 0; i < encoding.size(); i++)
-            encoding.getProperty(i).clear();
+            encoding.clear();
     }
 
     public Hyperedge clone() {
-        Hyperedge hyperedge = new Hyperedge(bitsetNum);
-        for (PPBitset bitset : this.getEncoding().getPropertyBitsets()) {
-            PPBitset ppBitset = (PPBitset) bitset.clone();
-            hyperedge.addEncoding(ppBitset);
-        }
+        Hyperedge hyperedge = new Hyperedge(encodingLength);
+        PPBitset ppBitset = (PPBitset) encoding.clone();
+        hyperedge.setEncoding(ppBitset);
+
         return hyperedge;
     }
 
@@ -74,15 +64,9 @@ public class Hyperedge {
      * @param hyperedge 新插入的超边
      */
     public void encodingOr(Hyperedge hyperedge) {
-        if (this.bitsetNum != hyperedge.bitsetNum)
-            throw new IllegalArgumentException(String.format("The number of properties contained in the two hyperedges is not equal." +
-                    "hyperedge1: id = %d, numOfProperty = %d, hyperedge2: id = %d, numOfProperty = %d", id, bitsetNum, hyperedge.getId(), hyperedge.getBitsetNum()));
-
-        for (int i = 0; i < hyperedge.getEncoding().size(); i++) {
-            List<Integer> bits = hyperedge.getEncoding().getProperty(i).getAllOneBits();
-            for (int bit : bits) {
-                this.getEncoding().getProperty(i).set(bit, true);
-            }
+        List<Integer> bits = hyperedge.getEncoding().getAllOneBits();
+        for (int bit : bits) {
+            this.getEncoding().set(bit, true);
         }
     }
 
@@ -92,43 +76,14 @@ public class Hyperedge {
      * @return
      */
     public boolean isBitwiseSubset(Hyperedge hyperedge) {
-        if (this.bitsetNum > hyperedge.bitsetNum)
-            return false;
-
-        // 对每个位置的属性逐一进行判断
-        for (int i = 0; i < bitsetNum; i++) {
-            isBitwiseSubset(i, hyperedge);
-        }
-
-        return true;
+        return encoding.isBitwiseSubset(hyperedge.encoding);
     }
 
-    public boolean isBitwiseSubset(int index, Hyperedge Hyperedge) {
-        if (this.bitsetNum > Hyperedge.bitsetNum)
-            return false;
 
-        return encoding.isBitwiseSubset(index, Hyperedge.getEncoding());
-    }
-
-    // 获得超边编码的总长度
-    public int getEncodingLength() {
-        int sum = 0;
-        for (int i = 0; i < encoding.size(); i++)
-            sum += encoding.getProperty(i).length();
-        return sum;
-    }
 
     public int cardinality() {
-        int sum = 0;
-        for (int i = 0; i < encoding.size(); i++)
-            sum += encoding.cardinality(i);
-        return sum;
+        return encoding.cardinality();
     }
-
-    public void addEncoding(PPBitset bitset) {
-        encoding.addEncoding(bitset);
-    }
-
 
     // ---------------------------- Getter 和 Setter ----------------------------
     public long getId() {
@@ -139,39 +94,24 @@ public class Hyperedge {
         this.id = id;
     }
 
-    public int getEventTypeId() {
-        return eventTypeId;
-    }
-
-    public void setEventTypeId(int eventTypeId) {
-        this.eventTypeId = eventTypeId;
-    }
-
-    public int getNumOfVertex() {
-        return numOfVertex;
-    }
-
-    public void setNumOfVertex(int numOfVertex) {
-        this.numOfVertex = numOfVertex;
-    }
-
-    public int getBitsetNum() {
-        return bitsetNum;
-    }
-
-    public void setBitsetNum(int bitsetNum) {
-        this.bitsetNum = bitsetNum;
-    }
-
-    public HyperedgeEncoding getEncoding() {
+    public PPBitset getEncoding() {
         return encoding;
     }
 
-    public void setEncoding(HyperedgeEncoding encoding) {
+    public void setEncoding(PPBitset encoding) {
         this.encoding = encoding;
     }
 
     public String printEncoding() {
-        return encoding.printEncoding();
+        return encoding.toString();
     }
+
+    public void setEncodingLength(int encodingLength) {
+        this.encodingLength = encodingLength;
+    }
+
+    public int getEncodingLength() {
+        return encodingLength;
+    }
+
 }

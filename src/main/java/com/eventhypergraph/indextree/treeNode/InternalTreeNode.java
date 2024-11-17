@@ -19,16 +19,16 @@ public class InternalTreeNode extends TreeNode {
      */
     private Map<Long, TreeNode> edgeToNode;
 
-    public InternalTreeNode(int capacity, int bitsetNum, int encodingLength) {
-        super(capacity, bitsetNum, encodingLength);
+    public InternalTreeNode(int capacity, int encodingLength) {
+        super(capacity, encodingLength);
 
         derivedHyperedges = new ArrayList<>();
         childNodes = new ArrayList<>();
         edgeToNode = new HashMap<>();
     }
 
-    public InternalTreeNode(long startTime, long endTime, int capacity, int bitsetNum, int encodingLength) {
-        super(startTime, endTime, capacity, bitsetNum, encodingLength);
+    public InternalTreeNode(long startTime, long endTime, int capacity, int encodingLength) {
+        super(startTime, endTime, capacity, encodingLength);
 
         derivedHyperedges = new ArrayList<>();
         childNodes = new ArrayList<>();

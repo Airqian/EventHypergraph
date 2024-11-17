@@ -15,7 +15,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
-import static com.eventhypergraph.dataset.FilePathConstants.SHOPPIONG_TREE_IOFO;
+import static com.eventhypergraph.dataSetHandler.FilePathConstants.SHOPPIONG_TREE_IOFO;
 import static com.eventhypergraph.indextree.util.GlobalConstants.HE_ID_INDEX;
 
 public class IndexTree {
@@ -24,32 +24,56 @@ public class IndexTree {
     private int windowSize;
 
     // 元数据：该索引树超边中包含的最大属性数
-    private int bitsetNum;
+//    private int bitsetNum;
 
     private int encodingLength;
 
     private int hashFuncCount;
 
+    // 叶子节点的子节点的最大个数
+    private int NInterbalNodeChilds;
+
     private int layer;
 
-    public IndexTree(int windowSize, int bitsetNum, int encodingLength, int hashFuncCount) {
+    public IndexTree(int windowSize, int encodingLength, int hashFuncCount, int NInterbalNodeChilds) {
         this.windowSize = windowSize;
         this.encodingLength = encodingLength;
-        this.bitsetNum = bitsetNum;
         this.hashFuncCount = hashFuncCount;
+        this.NInterbalNodeChilds = NInterbalNodeChilds;
+    }
+
+    // TODO: 构建倒排索引表，点到边的映射和边到点的映射
+    /**
+     * 根据时序超图构建索引树
+     * @param idToTime 顶点到属性的映射
+     * @param idMap 将超边按照时间升序排序
+     * @param labelMap 超边id到整条超边的映射（包含顶点id以及属性）
+     * @param proMap 超边id到整条超边的映射（包含顶点label以及属性）
+     */
+    public void buildTemporalHypergraphTree(List<long[]> idToTime, Map<String, String> idMap, Map<String, String> labelMap, Map<String, List<String>> proMap) {
+        Queue<TreeNode> treeNodes = new ArrayDeque<>();
+        LeafTreeNode leafTreeNode = new LeafTreeNode(windowSize, encodingLength);
+        long minTime = Long.MAX_VALUE;
+        long maxTime = Long.MIN_VALUE;
+
+        int size = 0;
+        for (int i = 0; i < idMap.size(); i++) {
+            String edgeId = String.valueOf(idToTime.get(i)[0]);
+            long edgeTime = idToTime.get(i)[1];
+
+        }
     }
 
     /**
-     * 给定数据集构建索引树
+     * 根据购物数据集构建索引树
      */
-    public void buildTree(DataSetInfo dataSetInfo) {
+    public void buildShoppingTree(DataSetInfo dataSetInfo) {
         // 根据读取到的数据集统计信息构建索引树
         // 观察到，如果为了保证一个叶子节点内只有一个主体，那么可能会导致树的叶子层非常稀疏
         // 因此，树的构建原则是时间优先，在将编码插入叶子节点时会按照主体属性和时间顺序进行相对排序，保证主体属性相同的编码放置在一块
         Map<String, Map<Long, List<Event>>> eventMap = dataSetInfo.getOrganizer().getEventMap();
-        int bitsetNum = 1;
         Queue<TreeNode> treeNodes = new ArrayDeque<>();
-        LeafTreeNode leafTreeNode = new LeafTreeNode(windowSize, bitsetNum, encodingLength);
+        LeafTreeNode leafTreeNode = new LeafTreeNode(windowSize, encodingLength);
         long minTime = Long.MAX_VALUE;
         long maxTime = Long.MIN_VALUE;
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -68,7 +92,7 @@ public class IndexTree {
                         Date date  = format.parse(items[items.length - 1]);
                         long time = date.getTime();
 
-                        DataHyperedge hyperedge = new DataHyperedge(Long.valueOf(items[HE_ID_INDEX]), time, items.length - 2, bitsetNum);
+                        DataHyperedge hyperedge = new DataHyperedge(Long.valueOf(items[HE_ID_INDEX]), time, items.length - 2, encodingLength);
                         minTime = Math.min(minTime, time);  // 更新窗口时间
                         maxTime = Math.max(maxTime, time);
                         leafTreeNode.setStartTime(minTime);
@@ -79,14 +103,14 @@ public class IndexTree {
                             PPBitset temp = PropertyEncodingConstructor.encoding(items[i], encodingLength, hashFuncCount);
                             totalBitSet = totalBitSet.or(temp);
                         }
-                        hyperedge.addEncoding(totalBitSet);
+                        hyperedge.setEncoding(totalBitSet);
                         leafTreeNode.addHyperedge(hyperedge);
                         size++;
 
                         // 当窗口达到了最大容量则新建下一个窗口，这个容量可以使用类似负载因子的优化方法，避免下一次插入直接造成节点分裂
                         if (size == windowSize) {
                             treeNodes.offer(leafTreeNode);
-                            leafTreeNode = new LeafTreeNode(windowSize, bitsetNum, encodingLength);
+                            leafTreeNode = new LeafTreeNode(windowSize, encodingLength);
                             minTime = Long.MAX_VALUE;
                             maxTime = Long.MIN_VALUE;
 
@@ -101,7 +125,6 @@ public class IndexTree {
 
         // 从叶节点层自底向上构建索引树
         Queue<TreeNode> treeNodes2 = new ArrayDeque<>();
-        int k = 2; // 每层子节点的最大个数
         while (!treeNodes.isEmpty()) {
             if (treeNodes.size() == 1) {
                 TreeNode node = treeNodes.poll();
@@ -111,9 +134,9 @@ public class IndexTree {
                 }
             }
 
-            InternalTreeNode parentNode = new InternalTreeNode(windowSize, bitsetNum,  encodingLength);
+            InternalTreeNode parentNode = new InternalTreeNode(windowSize,  encodingLength);
             // TODO 取出对应数量的子节点构建父节点(后续需要算法优化，子节点的数量有范围)
-            for (int i = 1; i <= k; i++) {
+            for (int i = 1; i <= NInterbalNodeChilds; i++) {
                 TreeNode childNode = treeNodes.poll();
                 Hyperedge parentEdge = childNode.getTopHyperedge().clone();
                 parentNode.addChildNode(parentEdge, childNode);
@@ -234,33 +257,33 @@ public class IndexTree {
 //        parentNode.addChildNode(newParentEdge, newLeafNode);
     }
 
-    private void extracted(LeafTreeNode curleafNode, LeafTreeNode newLeafNode, DataHyperedge seed1, DataHyperedge seed2, List<DataHyperedge> edges) {
-        int threshold = curleafNode.getCapacity() / 2;
-        for (int i = 0; i < edges.size(); i++) {
-            if (curleafNode.size() < threshold && newLeafNode.size() < threshold) {
-                // cur 为待插入超边
-                DataHyperedge cur = edges.get(i);
-                double res1 = cur.getWeightIncrease(seed1);
-                double res2 = cur.getWeightIncrease(seed2);
-
-                // 添加到权重增量较小的窗口中
-                if (Double.compare(res1, res2) <= 0)
-                    curleafNode.addHyperedge(cur);
-                else
-                    newLeafNode.addHyperedge(cur);
-
-                edges.remove(i);
-            } else
-                break;
-        }
-
-        if (edges.size() > 0) {
-            if (curleafNode.size() >= threshold)
-                newLeafNode.addHyperedge(edges);
-            else
-                curleafNode.addHyperedge(edges);
-        }
-    }
+//    private void extracted(LeafTreeNode curleafNode, LeafTreeNode newLeafNode, DataHyperedge seed1, DataHyperedge seed2, List<DataHyperedge> edges) {
+//        int threshold = curleafNode.getCapacity() / 2;
+//        for (int i = 0; i < edges.size(); i++) {
+//            if (curleafNode.size() < threshold && newLeafNode.size() < threshold) {
+//                // cur 为待插入超边
+//                DataHyperedge cur = edges.get(i);
+//                double res1 = cur.getWeightIncrease(seed1);
+//                double res2 = cur.getWeightIncrease(seed2);
+//
+//                // 添加到权重增量较小的窗口中
+//                if (Double.compare(res1, res2) <= 0)
+//                    curleafNode.addHyperedge(cur);
+//                else
+//                    newLeafNode.addHyperedge(cur);
+//
+//                edges.remove(i);
+//            } else
+//                break;
+//        }
+//
+//        if (edges.size() > 0) {
+//            if (curleafNode.size() >= threshold)
+//                newLeafNode.addHyperedge(edges);
+//            else
+//                curleafNode.addHyperedge(edges);
+//        }
+//    }
 
     // 从根节点开始打印树
     public void printTree() {
@@ -286,12 +309,6 @@ public class IndexTree {
         return windowSize;
     }
 
-
-    public int getBitsetNum() {
-        return bitsetNum;
-    }
-
-
     public int getEncodingLength() {
         return encodingLength;
     }
@@ -303,5 +320,7 @@ public class IndexTree {
     public int getHashFuncCount() {
         return hashFuncCount;
     }
+
+
 }
 

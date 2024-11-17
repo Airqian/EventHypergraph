@@ -5,24 +5,21 @@ import com.eventhypergraph.encoding.util.PeriodType;
 import java.io.*;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 
-import static com.eventhypergraph.dataset.FilePathConstants.SHOPPING_EVENT_DATA_FILE_PATH;
+import static com.eventhypergraph.dataSetHandler.FilePathConstants.SHOPPING_EVENT_DATA_FILE_PATH;
 import static com.eventhypergraph.indextree.util.GlobalConstants.SUBJECT_INDEX;
 
-public class DataAnalyzer {
+public class ShoppingDataAnalyzer {
     public static void main(String[] args) {
-        DataAnalyzer dataAnalyzer = new DataAnalyzer();
+        ShoppingDataAnalyzer shoppingDataAnalyzer = new ShoppingDataAnalyzer();
         String shoppingfilePath = SHOPPING_EVENT_DATA_FILE_PATH;
-        dataAnalyzer.readFile(shoppingfilePath,  PeriodType.MONTH);
+        shoppingDataAnalyzer.readShoppingFile(shoppingfilePath,  PeriodType.MONTH);
     }
 
     // 默认主体属性是第一个元素
     // 对数据集进行基础分析，得到数据集中记录总条数、事件最早发生时间、事件最晚发生时间不同主体的事件数量数以及时间范围
-
-    public static DataSetInfo readFile(String filePath, PeriodType periodType) {
+    public static DataSetInfo readShoppingFile(String filePath, PeriodType periodType) {
         if (filePath == null || filePath.length() == 0)
             return null;
 

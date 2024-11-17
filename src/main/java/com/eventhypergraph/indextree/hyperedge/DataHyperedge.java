@@ -20,32 +20,25 @@ public class DataHyperedge extends Hyperedge implements Comparable<DataHyperedge
     private List<Long> vertexIds;
 
     // 构造查询超边时会用到
-    public DataHyperedge(long eventTime, int numOfVertex, int bitsetNum) {
-        super(numOfVertex, bitsetNum);
+    public DataHyperedge(long eventTime, int numOfVertex, int encodingLength) {
+        super(numOfVertex, encodingLength);
 
         this.eventTime = eventTime;
         vertexIds = new ArrayList<>();
     }
 
     // 读取数据集构建树时会遇到
-    public DataHyperedge(long id, long eventTime, int numOfVertex, int bitsetNum) {
-        super(id, numOfVertex, bitsetNum);
+    public DataHyperedge(long id, long eventTime, int numOfVertex, int encodingLength) {
+        super(id, numOfVertex, encodingLength);
 
         this.eventTime = eventTime;
         vertexIds = new ArrayList<>();
     }
 
     // 计算与给定超边之间的权重增量
-    public double getWeightIncrease( DataHyperedge dataHyperedge) {
-        double res = 0.0;
-        int len = dataHyperedge.getEncodingLength();
-
-        for (int i = 0; i < dataHyperedge.getEncoding().size(); i++) {
-            PPBitset tmp = this.getEncodingAt(i).or(dataHyperedge.getEncodingAt(i));
-            double diff = (tmp.cardinality() - dataHyperedge.getEncodingAt(i).cardinality()) * 1.0;
-            res += (tmp.length() * 1.0) / len * diff;
-        }
-        return res;
+    public double getWeightIncrease(DataHyperedge dataHyperedge) {
+        double diff = (this.getEncoding().cardinality() - dataHyperedge.cardinality()) * 1.0;
+        return diff;
     }
 
     /**
@@ -56,8 +49,8 @@ public class DataHyperedge extends Hyperedge implements Comparable<DataHyperedge
      */
     @Override
     public int compareTo(DataHyperedge o) {
-        if (!this.getEncoding().getProperty(0).equals(o.getEncoding().getProperty(0)))
-            return this.getEncoding().getProperty(0).compareTo(o.getEncoding().getProperty(0));
+        if (!this.getEncoding().equals(o.getEncoding()))
+            return this.getEncoding().compareTo(o.getEncoding());
         else
             return Long.compare(this.eventTime, o.eventTime);
     }

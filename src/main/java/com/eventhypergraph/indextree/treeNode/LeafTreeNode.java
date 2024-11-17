@@ -22,14 +22,13 @@ public class LeafTreeNode extends TreeNode {
     // 当和DerivedHyperedge行为没啥太大的差别时再统一为Hyperedge
     private List<DataHyperedge> dataHyperedges;
 
-    public LeafTreeNode(int capacity, int bitsetNum, int encodingLength) {
-        super(capacity, bitsetNum, encodingLength);
+    public LeafTreeNode(int capacity, int encodingLength) {
+        super(capacity, encodingLength);
         dataHyperedges = new ArrayList<>();
     }
 
-    public LeafTreeNode(long startTime, long endTime, int capacity, int bitsetNum, int encodingLength) {
-        super(startTime, endTime, capacity, bitsetNum, encodingLength);
-
+    public LeafTreeNode(long startTime, long endTime, int capacity, int encodingLength) {
+        super(startTime, endTime, capacity, encodingLength);
         dataHyperedges = new ArrayList<>();
     }
 
@@ -62,8 +61,7 @@ public class LeafTreeNode extends TreeNode {
     }
 
 
-
-    public void addHyperedge( List<DataHyperedge> dataHyperedges) {
+    public void addHyperedge(List<DataHyperedge> dataHyperedges) {
         for (int i = 0; i < dataHyperedges.size(); i++)
             addHyperedge(dataHyperedges.get(i));
     }
@@ -75,20 +73,17 @@ public class LeafTreeNode extends TreeNode {
     public void updateParentEdge() {
         TreeNode pNode = getParentNode();
         Hyperedge pEdge = getParentEdge();
-        List<Set<Integer>> gbits = this.getGlobalbits();
+        Set<Integer> gbits = this.getGlobalbits();
 
         // 用子节点的gbits更新父节点的Hyperedge,再令globalbits与其同步
-        for (int i = 0; i < gbits.size(); i++) {
-            for (int bit : gbits.get(i)) {
-                pEdge.getEncoding().getProperty(i).set(bit);
-            }
+        for (int bit : gbits) {
+            pEdge.getEncoding().set(bit);
         }
     }
 
 
-
     // 二分查找搜索给定hyperedge可插入的位置
-    public int binarySort( DataHyperedge edge) {
+    public int binarySort(DataHyperedge edge) {
         int left = 0;
         int right = dataHyperedges.size() - 1;
 
@@ -110,7 +105,7 @@ public class LeafTreeNode extends TreeNode {
     }
 
     // 删除窗口中已有的超边
-    public void remove( DataHyperedge edge) {
+    public void remove(DataHyperedge edge) {
         int index = binarySort(edge);
         if (edge.getId() == dataHyperedges.get(index).getId()) {
             dataHyperedges.remove(index);

@@ -1,4 +1,4 @@
-package com.eventhypergraph.dataset;
+package com.eventhypergraph.dataSetHandler;
 
 import cn.hutool.core.util.IdUtil;
 import org.junit.Test;
@@ -10,7 +10,7 @@ import java.io.FileWriter;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
-import static com.eventhypergraph.dataset.FilePathConstants.*;
+import static com.eventhypergraph.dataSetHandler.FilePathConstants.*;
 
 
 public class ShoppingDataBuilder {

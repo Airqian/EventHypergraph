@@ -13,6 +13,7 @@ import java.util.List;
  * 这个类保存事件超边的编码，并封装了 PPBitset 类的位操作。
  * 编码的顺序必须严格与属性的顺序对齐。
  */
+@Deprecated
 public class HyperedgeEncoding {
     /**
      * 预先在此处保存一份，其是下划线形式，如"propertyNameA_propertyNameB_propertyNameC"
@@ -24,17 +25,8 @@ public class HyperedgeEncoding {
 
     private List<PPBitset> propertyBitsets;
 
-    private int bitsetNum;
-
-    public HyperedgeEncoding(int bitsetNum) {
-        this.bitsetNum = bitsetNum;
-        propertyBitsets = new ArrayList<>();
-    }
-
-    /* 创建hyperedge时就需要传入属性个数以初始化bitsetNum */
-    public HyperedgeEncoding(long hyperedgeId, int bitsetNum) {
+    public HyperedgeEncoding(long hyperedgeId) {
         this.hyperedgeId = hyperedgeId;
-        this.bitsetNum = bitsetNum;
         propertyBitsets = new ArrayList<>();
     }
 
@@ -50,17 +42,6 @@ public class HyperedgeEncoding {
     public PPBitset orOperation(int index, PPBitset another) {
         PPBitset bitset = propertyBitsets.get(index);
         return bitset.or(another);
-    }
-
-    public PPBitset orOperation(int index, HyperedgeEncoding hyperedgeEncoding) {
-        PPBitset bitset = propertyBitsets.get(index);
-        return bitset.or(hyperedgeEncoding.getProperty(index));
-    }
-
-    public boolean isBitwiseSubset(int index, HyperedgeEncoding hyperedgeEncoding) {
-
-        PPBitset bitset = propertyBitsets.get(index);
-        return bitset.isBitwiseSubset(hyperedgeEncoding.getProperty(index));
     }
 
     public int cardinality(int index) {
