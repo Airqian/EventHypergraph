@@ -1,6 +1,6 @@
 package com.eventhypergraph.indextree.treeNode;
 
-import com.eventhypergraph.encoding.Exception.TimeOutOfBoundException;
+import com.eventhypergraph.encoding.PPBitset;
 import com.eventhypergraph.encoding.util.Pair;
 import com.eventhypergraph.indextree.hyperedge.DataHyperedge;
 import com.eventhypergraph.indextree.hyperedge.Hyperedge;
@@ -22,8 +22,14 @@ public class LeafTreeNode extends TreeNode {
     // 当和DerivedHyperedge行为没啥太大的差别时再统一为Hyperedge
     private List<DataHyperedge> dataHyperedges;
 
-    public LeafTreeNode(int capacity, int encodingLength) {
+    private List<PPBitset> secondaryBitsets;
+
+    private int secondaryIndexSize;
+
+    public LeafTreeNode(int capacity, int encodingLength, int secondaryIndexSize) {
         super(capacity, encodingLength);
+        this.secondaryBitsets = new ArrayList<>();
+        this.secondaryIndexSize = secondaryIndexSize;
         dataHyperedges = new ArrayList<>();
     }
 
@@ -43,7 +49,7 @@ public class LeafTreeNode extends TreeNode {
      */
     public boolean addHyperedge(DataHyperedge dataHyperedge) {
         if (dataHyperedge.getEventTime() < getStartTime() || dataHyperedge.getEventTime() > getEndTime())
-            throw new TimeOutOfBoundException("The occurrence time of the event to be inserted is not within the time window.");
+            throw new RuntimeException("The occurrence time of the event to be inserted is not within the time window.");
 
         if (!isFull()) {
             int index = binarySort(dataHyperedge);
@@ -81,7 +87,6 @@ public class LeafTreeNode extends TreeNode {
         }
     }
 
-
     // 二分查找搜索给定hyperedge可插入的位置
     public int binarySort(DataHyperedge edge) {
         int left = 0;
@@ -104,12 +109,42 @@ public class LeafTreeNode extends TreeNode {
         return left;
     }
 
+    public void buildSecondaryIndex() {
+        int encodingLength = getTopHyperedge().getEncodingLength();
+        PPBitset bitset = new PPBitset(encodingLength);
+
+        for (int i = 0; i < dataHyperedges.size(); i++) {
+            bitset.or(dataHyperedges.get(i).getEncoding()); // 合并编码
+            // 每达到一个 secondaryIndexSize 或到达最后一个超边时，保存当前 bitset 并创建新的 bitset
+            if ((i + 1) % secondaryIndexSize == 0 || i == dataHyperedges.size() - 1) {
+                this.secondaryBitsets.add(bitset);
+                bitset = new PPBitset(encodingLength); // 重新初始化 bitset
+            }
+        }
+    }
+
     // 删除窗口中已有的超边
     public void remove(DataHyperedge edge) {
         int index = binarySort(edge);
         if (edge.getId() == dataHyperedges.get(index).getId()) {
             dataHyperedges.remove(index);
         }
+    }
+
+    public String printEdges() {
+        StringBuilder builder = new StringBuilder();
+        for (int i = 0; i < secondaryBitsets.size(); i++) {
+            PPBitset secondaryBitset = secondaryBitsets.get(i);
+            builder.append("secondaryBitset：").append(secondaryBitset.toString()).append("\n");
+
+            for (int j = i * secondaryIndexSize; j < Math.min(dataHyperedges.size(), (i + 1) * secondaryIndexSize); j++) {
+                builder.append(dataHyperedges.get(j).printEncoding()).append("\n");
+            }
+        }
+//        for (Hyperedge hyperedge : dataHyperedges) {
+//            builder.append(hyperedge.printEncoding()).append("\n");
+//        }
+        return builder.toString();
     }
 
     public List<DataHyperedge> getHyperedges() {
@@ -128,19 +163,19 @@ public class LeafTreeNode extends TreeNode {
         return this.dataHyperedges.size();
     }
 
-    public String printEdges() {
-        StringBuilder builder = new StringBuilder();
-        for (Hyperedge hyperedge : dataHyperedges) {
-            builder.append(hyperedge.printEncoding()).append("\n");
-        }
-        return builder.toString();
-    }
-
     public void clear() {
         this.getSeedHyperedges().clear();
         this.getGlobalbits().clear();
         this.dataHyperedges.clear();
         setMinCardinality(1000);
+    }
+
+    public List<PPBitset> getSecondaryBitsets() {
+        return secondaryBitsets;
+    }
+
+    public void setSecondaryBitsets(List<PPBitset> secondaryBitsets) {
+        this.secondaryBitsets = secondaryBitsets;
     }
 }
 

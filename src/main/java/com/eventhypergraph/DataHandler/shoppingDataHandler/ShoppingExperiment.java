@@ -1,8 +1,9 @@
-package com.eventhypergraph.indextree;
+package com.eventhypergraph.DataHandler.shoppingDataHandler;
 
 import com.eventhypergraph.encoding.PPBitset;
 import com.eventhypergraph.encoding.PropertyEncodingConstructor;
 import com.eventhypergraph.encoding.util.PeriodType;
+import com.eventhypergraph.indextree.IndexTree;
 import com.eventhypergraph.indextree.hyperedge.DataHyperedge;
 import com.eventhypergraph.indextree.util.ShoppingDataAnalyzer;
 import com.eventhypergraph.indextree.util.DataSetInfo;
@@ -13,27 +14,26 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 
-import static com.eventhypergraph.dataSetHandler.FilePathConstants.*;
-
-public class Experiment {
+public class ShoppingExperiment {
     public static void main(String[] args) {
-        IndexTree indexTree = buildShoppingTree(SHOPPIONG_EVENT_EXPERIMENT_FILE_PATH, PeriodType.MONTH);
-        query(indexTree, SHOPPING_QUERY_FILE_PATH);
+        IndexTree indexTree = buildShoppingTree(FilePathConstants.SHOPPIONG_EVENT_EXPERIMENT_FILE_PATH, PeriodType.MONTH);
+        query(indexTree, FilePathConstants.SHOPPING_QUERY_FILE_PATH);
     }
 
     public static IndexTree buildShoppingTree(String dataFile, PeriodType type) {
         // 读取数据集，数据集格式固定第一项是超边ID
         DataSetInfo dataSetInfo = ShoppingDataAnalyzer.readShoppingFile(dataFile, type);
-        // dataSetInfo.getOrganizer().printAllEvents();
 
         // 构建索引树
         int windowSize = 10;
         int encodingLength = 100; // 统一的编码长度
-        int bitsetNum = 1; // 单条超边的最大属性个数
         int hashFuncCount = 3;
-        int NInterbalNodeChilds = 2;
 
-        IndexTree indexTree = new IndexTree(windowSize, encodingLength, hashFuncCount, NInterbalNodeChilds);
+        int minInternalNodeChilds = 10;
+        int maxInternalNodeChilds = 15;
+        int secondaryIndexSize = 16;
+
+        IndexTree indexTree = new IndexTree(windowSize, encodingLength, hashFuncCount, minInternalNodeChilds, maxInternalNodeChilds, secondaryIndexSize);
         indexTree.buildShoppingTree(dataSetInfo);
         return indexTree;
     }
@@ -53,7 +53,7 @@ public class Experiment {
                 String[] items = line.split("\\t");
                 Date date  = format.parse(items[items.length - 1]);
                 long time = date.getTime();
-                DataHyperedge hyperedge = new DataHyperedge(time,items.length - 2, encodingLength);
+                DataHyperedge hyperedge = new DataHyperedge(time, encodingLength);
 
                 PPBitset totalBitSet = new PPBitset(encodingLength);
                 for (int i = 1, j = 0; i < items.length - 1; i++, j++) {
@@ -62,7 +62,7 @@ public class Experiment {
                 }
                 hyperedge.setEncoding(totalBitSet);
 
-                List<Long> ids = indexTree.singleSearch(hyperedge);
+                List<Long> ids = indexTree.singleEdgeSearch(hyperedge);
                 for (Long id : ids)
                     System.out.println(id);
             }

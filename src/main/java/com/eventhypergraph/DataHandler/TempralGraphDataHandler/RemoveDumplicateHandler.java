@@ -1,4 +1,4 @@
-package com.eventhypergraph.dataSetHandler;
+package com.eventhypergraph.DataHandler.TempralGraphDataHandler;
 
 import java.io.*;
 import java.util.HashSet;
@@ -8,15 +8,20 @@ import java.util.Set;
  * 该类用于对数据集进行去重
  */
 public class RemoveDumplicateHandler {
-    private static final String HYPEREDGE_ID_FILE = "src/main/java/com/eventhypergraph/dataset/temporal-restricted/coauth-MAG-History/hyperedge-id.txt";
+    private static final String HYPEREDGE_ID_FILE = "src/main/java/com/eventhypergraph/dataset/temporal-restricted/tags-stack-overflow/hyperedge-id.txt";
 
-    private static final String HYPEREDGE_LABEL_FILE = "src/main/java/com/eventhypergraph/dataset/temporal-restricted/coauth-MAG-History/hyperedge-label.txt";
+    private static final String HYPEREDGE_LABEL_FILE = "src/main/java/com/eventhypergraph/dataset/temporal-restricted/tags-stack-overflow/hyperedge-label.txt";
 
-    private static final String HYPEREDGE_ID_UNIQUE_FILE = "src/main/java/com/eventhypergraph/dataset/temporal-restricted/coauth-MAG-History/hyperedge-id-unique.txt";
+    private static final String HYPEREDGE_ID_UNIQUE_FILE = "src/main/java/com/eventhypergraph/dataset/temporal-restricted/tags-stack-overflow/hyperedge-id-unique.txt";
 
-    private static final String HYPEREDGE_LABEL_UNIQUE_FILE = "src/main/java/com/eventhypergraph/dataset/temporal-restricted/coauth-MAG-History/hyperedge-label-unique.txt";
+    private static final String HYPEREDGE_LABEL_UNIQUE_FILE = "src/main/java/com/eventhypergraph/dataset/temporal-restricted/tags-stack-overflow/hyperedge-label-unique.txt";
 
     public static void main(String[] args) {
+        removeDupllicate();
+        getTotalVertexNum();
+    }
+
+    private static void removeDupllicate() {
         BufferedReader idReader;
         BufferedReader labelReader;
         BufferedWriter idWriter;
@@ -72,4 +77,24 @@ public class RemoveDumplicateHandler {
         return res;
     }
 
+    private static void getTotalVertexNum() {
+        BufferedReader reader;
+
+        try {
+            reader = new BufferedReader(new FileReader(HYPEREDGE_ID_UNIQUE_FILE));
+            String line;
+
+            int lines = 0;
+            int total = 0;
+            while ((line = reader.readLine()) != null) {
+                lines++;
+                String[] items = line.split("\t");
+                total += items.length - 2;
+            }
+            System.out.println("去重之后数据超图中的超边总数为：" + lines);
+            System.out.println("去重之后数据超图中的顶点总数为：" + total);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
 }

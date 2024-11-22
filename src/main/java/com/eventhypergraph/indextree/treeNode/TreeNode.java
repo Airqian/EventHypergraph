@@ -12,8 +12,6 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
-import static com.eventhypergraph.dataSetHandler.FilePathConstants.SHOPPIONG_TREE_IOFO;
-
 /**
  * 树节点父类，定义了时间范围、节点容量等公共字段
  */
@@ -62,6 +60,7 @@ public class TreeNode {
 
         this.startTime = Long.MAX_VALUE;
         this.endTime = Long.MIN_VALUE;
+
 
         this.initialGlobalBits();
         this.initialTopHyperedge(encodingLength);
@@ -134,11 +133,11 @@ public class TreeNode {
         }
     }
 
-    public void print() {
+    public void print(String treeInfoFilePath) {
         BufferedWriter writer;
 
         try {
-            writer = new BufferedWriter(new FileWriter(SHOPPIONG_TREE_IOFO, true));
+            writer = new BufferedWriter(new FileWriter(treeInfoFilePath, true));
             StringBuilder builder = new StringBuilder();
             SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
@@ -260,4 +259,5 @@ public class TreeNode {
     public Hyperedge getTopHyperedge() {
         return topHyperedge;
     }
+
 }

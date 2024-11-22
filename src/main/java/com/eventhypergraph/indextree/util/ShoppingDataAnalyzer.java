@@ -7,7 +7,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
-import static com.eventhypergraph.dataSetHandler.FilePathConstants.SHOPPING_EVENT_DATA_FILE_PATH;
+import static com.eventhypergraph.DataHandler.shoppingDataHandler.FilePathConstants.SHOPPING_EVENT_DATA_FILE_PATH;
 import static com.eventhypergraph.indextree.util.GlobalConstants.SUBJECT_INDEX;
 
 public class ShoppingDataAnalyzer {

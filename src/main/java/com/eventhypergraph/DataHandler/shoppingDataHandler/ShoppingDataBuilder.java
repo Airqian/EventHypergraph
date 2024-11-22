@@ -1,4 +1,4 @@
-package com.eventhypergraph.dataSetHandler;
+package com.eventhypergraph.DataHandler.shoppingDataHandler;
 
 import cn.hutool.core.util.IdUtil;
 import org.junit.Test;
@@ -9,8 +9,6 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.text.SimpleDateFormat;
 import java.util.*;
-
-import static com.eventhypergraph.dataSetHandler.FilePathConstants.*;
 
 
 public class ShoppingDataBuilder {
@@ -23,7 +21,7 @@ public class ShoppingDataBuilder {
         String startTime = "2019-03-01 00:00:00";
         String endTime = "2019-12-31 23:59:59";
 
-        String shoppingEventFile = SHOPPIONG_EVENT_EXPERIMENT_FILE_PATH;
+        String shoppingEventFile = FilePathConstants.SHOPPIONG_EVENT_EXPERIMENT_FILE_PATH;
         BufferedWriter writer;
 
         long id = 1037074805834256618l;
@@ -66,8 +64,8 @@ public class ShoppingDataBuilder {
     @Test
     // 给hobby添加id
     public void hobbyHandler() {
-        String hobbyData = HOBBY_DATA_UNUSED_FILE_PATH;
-        String hobbyDataNew = HOBBY_DATA_FILE_PATH;
+        String hobbyData = FilePathConstants.HOBBY_DATA_UNUSED_FILE_PATH;
+        String hobbyDataNew = FilePathConstants.HOBBY_DATA_FILE_PATH;
         BufferedReader bufferedReader;
         BufferedWriter bufferedWriter;
 
@@ -97,7 +95,7 @@ public class ShoppingDataBuilder {
 
     // 得到所有的hobbyId
     public ArrayList<String> getHobbyIds() {
-        String hobbyFilePath = HOBBY_DATA_FILE_PATH;
+        String hobbyFilePath = FilePathConstants.HOBBY_DATA_FILE_PATH;
         BufferedReader bufferedReader;
         ArrayList<String> hobbys = new ArrayList<>();
 
@@ -119,7 +117,7 @@ public class ShoppingDataBuilder {
     }
 
     public HashMap<String,String> getHobbyId2NameMap() {
-        String hobbyFilePath = HOBBY_DATA_FILE_PATH;
+        String hobbyFilePath = FilePathConstants.HOBBY_DATA_FILE_PATH;
         BufferedReader bufferedReader;
         HashMap<String,String> hobbys = new HashMap<>();
 
@@ -145,8 +143,8 @@ public class ShoppingDataBuilder {
     @Test
     // 商品列表数据处理
     public void ItemDataHandle() {
-        String itemData = ITEM_DATA_UNUSED_FILE_PATH;
-        String itemDatanew = ITEM_DATA_UNUSED_FILE_PATH;
+        String itemData = FilePathConstants.ITEM_DATA_UNUSED_FILE_PATH;
+        String itemDatanew = FilePathConstants.ITEM_DATA_UNUSED_FILE_PATH;
         BufferedReader bufferedReader;
         BufferedWriter bufferedWriter;
 
@@ -177,8 +175,8 @@ public class ShoppingDataBuilder {
     @Test
     // 商城列表数据处理
     public void mallDataHandle() {
-        String mallData = MALL_DATA_UNUSED_FILE_PATH;
-        String mallDatanew = MALL_DATA_FILE_PATH;
+        String mallData = FilePathConstants.MALL_DATA_UNUSED_FILE_PATH;
+        String mallDatanew = FilePathConstants.MALL_DATA_FILE_PATH;
         BufferedReader bufferedReader;
         BufferedWriter bufferedWriter;
 
@@ -217,8 +215,8 @@ public class ShoppingDataBuilder {
         // 构建商店-商品数据
         BufferedReader reader;
         BufferedWriter writer;
-        String storeData = STORE_DATA_UNUSED_FILE_PATH;
-        String storeDataNew = STORE_DATA_FILE_PATH;
+        String storeData = FilePathConstants.STORE_DATA_UNUSED_FILE_PATH;
+        String storeDataNew = FilePathConstants.STORE_DATA_FILE_PATH;
 
         try{
             reader = new BufferedReader(new FileReader(storeData));
@@ -262,7 +260,7 @@ public class ShoppingDataBuilder {
         BufferedReader reader;
 
         try {
-            reader = new BufferedReader(new FileReader(ITEM_DATA_FILE_PATH));
+            reader = new BufferedReader(new FileReader(FilePathConstants.ITEM_DATA_FILE_PATH));
             String line;
 
             while((line = reader.readLine()) != null) {
@@ -280,7 +278,7 @@ public class ShoppingDataBuilder {
     }
 
     public ArrayList<HashMap<String, ArrayList<String>>> getStoresAndItems() {
-        String countryFilePath = STORE_DATA_FILE_PATH;
+        String countryFilePath = FilePathConstants.STORE_DATA_FILE_PATH;
         BufferedReader bufferedReader;
         ArrayList<HashMap<String, ArrayList<String>>> stores = new ArrayList<>();
 
@@ -309,7 +307,7 @@ public class ShoppingDataBuilder {
     }
 
     public ArrayList<String> getMallIds() {
-        String countryFilePath = MALL_DATA_FILE_PATH;
+        String countryFilePath = FilePathConstants.MALL_DATA_FILE_PATH;
         BufferedReader bufferedReader;
         ArrayList<String> malls = new ArrayList<>();
 
@@ -331,7 +329,7 @@ public class ShoppingDataBuilder {
     }
 
     public ArrayList<String> getMallNames() {
-        String countryFilePath = MALL_DATA_FILE_PATH;
+        String countryFilePath = FilePathConstants.MALL_DATA_FILE_PATH;
         BufferedReader bufferedReader;
         ArrayList<String> malls = new ArrayList<>();
 
@@ -356,8 +354,8 @@ public class ShoppingDataBuilder {
     @Test
     // cityData文件替换cityId
     public void cityHandler() {
-        String countryData = CITY_DATA_UNUSED_FILE_PATH;
-        String countryDataNew = CITY_DATA_FILE_PATH;
+        String countryData = FilePathConstants.CITY_DATA_UNUSED_FILE_PATH;
+        String countryDataNew = FilePathConstants.CITY_DATA_FILE_PATH;
         BufferedReader bufferedReader;
         BufferedWriter bufferedWriter;
 
@@ -393,8 +391,8 @@ public class ShoppingDataBuilder {
     @Test
     // countryData文件替换countryId
     public void countryHandler() {
-        String countryData = COUNTRY_DATA_UNUSED_FILE_PATH;
-        String countryDataNew = COUNTRY_DATA_FILE_PATH;
+        String countryData = FilePathConstants.COUNTRY_DATA_UNUSED_FILE_PATH;
+        String countryDataNew = FilePathConstants.COUNTRY_DATA_FILE_PATH;
         BufferedReader bufferedReader;
         BufferedWriter bufferedWriter;
 
@@ -423,7 +421,7 @@ public class ShoppingDataBuilder {
     }
 
     public ArrayList<String> getCountryIds() {
-        String countryFilePath = COUNTRY_DATA_FILE_PATH;
+        String countryFilePath = FilePathConstants.COUNTRY_DATA_FILE_PATH;
         BufferedReader bufferedReader;
         ArrayList<String> countries = new ArrayList<>();
 
@@ -450,7 +448,7 @@ public class ShoppingDataBuilder {
         BufferedReader reader;
 
         try {
-            reader = new BufferedReader(new FileReader(COUNTRY_DATA_FILE_PATH));
+            reader = new BufferedReader(new FileReader(FilePathConstants.COUNTRY_DATA_FILE_PATH));
             String line;
 
             while((line = reader.readLine()) != null) {
@@ -472,7 +470,7 @@ public class ShoppingDataBuilder {
         BufferedReader reader;
 
         try {
-            reader = new BufferedReader(new FileReader(COUNTRY_DATA_FILE_PATH));
+            reader = new BufferedReader(new FileReader(FilePathConstants.COUNTRY_DATA_FILE_PATH));
             String line;
 
             while((line = reader.readLine()) != null) {
@@ -500,8 +498,8 @@ public class ShoppingDataBuilder {
         ArrayList<String> countries = getCountryIds();
         HashMap<String,String> countryMap = getCountryId2CodeMap();
 
-        String friendData = FRIEND_DATA_FILE_PATH;
-        String userDataNew = USER_DATA_FILE_PATH;
+        String friendData = FilePathConstants.FRIEND_DATA_FILE_PATH;
+        String userDataNew = FilePathConstants.USER_DATA_FILE_PATH;
         BufferedReader reader;
         BufferedWriter writer;
 
@@ -533,7 +531,7 @@ public class ShoppingDataBuilder {
 
     // 得到所有的用户用于 mock 购物事件
     public ArrayList<String> getAllUserIds() {
-        String userDataFile = USER_DATA_EXPERIMENT_PATH;
+        String userDataFile = FilePathConstants.USER_DATA_EXPERIMENT_PATH;
         BufferedReader bufferedReader;
         ArrayList<String> users = new ArrayList<>();
 

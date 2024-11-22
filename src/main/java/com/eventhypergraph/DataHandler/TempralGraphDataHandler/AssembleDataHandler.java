@@ -1,4 +1,4 @@
-package com.eventhypergraph.dataSetHandler;
+package com.eventhypergraph.DataHandler.TempralGraphDataHandler;
 
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.RandomUtil;
@@ -11,21 +11,21 @@ import java.util.*;
  */
 public class AssembleDataHandler {
     // 节点标签文件
-    private static final String NODE_LABELS = "src/main/java/com/eventhypergraph/dataset/temporal-restricted/Coauth-MAG-History/Coauth-MAG-History-node-labels.txt";
+    private static final String NODE_LABELS = "src/main/java/com/eventhypergraph/dataset/temporal-restricted/coauth-MAG-Geology/coauth-MAG-Geology-node-labels.txt";
 
     // 每条超边包含的顶点数文件
-    private static final String NVERTS = "src/main/java/com/eventhypergraph/dataset/temporal-restricted/Coauth-MAG-History/Coauth-MAG-History-nverts.txt";
+    private static final String NVERTS = "src/main/java/com/eventhypergraph/dataset/temporal-restricted/coauth-MAG-Geology/coauth-MAG-Geology-nverts.txt";
 
     // 超边包含的具体顶点
-    private static final String SIMPLICES = "src/main/java/com/eventhypergraph/dataset/temporal-restricted/Coauth-MAG-History/Coauth-MAG-History-simplices.txt";
+    private static final String SIMPLICES = "src/main/java/com/eventhypergraph/dataset/temporal-restricted/coauth-MAG-Geology/coauth-MAG-Geology-simplices.txt";
 
-    private static final String TIMES = "src/main/java/com/eventhypergraph/dataset/temporal-restricted/Coauth-MAG-History/Coauth-MAG-History-times.txt";
+    private static final String TIMES = "src/main/java/com/eventhypergraph/dataset/temporal-restricted/coauth-MAG-Geology/coauth-MAG-Geology-times.txt";
 
-    private static final String HYPEREDGE_ID_FILE = "src/main/java/com/eventhypergraph/dataset/temporal-restricted/Coauth-MAG-History/hyperedge-id.txt";
+    private static final String HYPEREDGE_ID_FILE = "src/main/java/com/eventhypergraph/dataset/temporal-restricted/coauth-MAG-Geology/hyperedge-id.txt";
 
-    private static final String HYPEREDGE_LABEL_FILE = "src/main/java/com/eventhypergraph/dataset/temporal-restricted/Coauth-MAG-History/hyperedge-label.txt";
+    private static final String HYPEREDGE_LABEL_FILE = "src/main/java/com/eventhypergraph/dataset/temporal-restricted/coauth-MAG-Geology/hyperedge-label.txt";
 
-    private static final String NODE_PROPERTY = "src/main/java/com/eventhypergraph/dataset/temporal-restricted/Coauth-MAG-History/node-property";
+    private static final String NODE_PROPERTY = "src/main/java/com/eventhypergraph/dataset/temporal-restricted/coauth-MAG-Geology/node-property";
 
     public static void main(String[] args) {
         Map<String, String> vertexId2Label = readNodeLabels(); // 节点id到label的映射
@@ -33,7 +33,10 @@ public class AssembleDataHandler {
         LinkedList<Integer> simplices = readSimplices(); // 按超边罗列包含的顶点id
         LinkedList<Long> timeList = readTime(); // 超边的时间列表
 
-        handleLabelAndID(vertexId2Label, nverts, simplices, timeList);
+        for (int i = 1; i <= 10; i++)
+            System.out.println(vertexId2Label.get(String.valueOf(i)));
+
+//        handleLabelAndID(vertexId2Label, nverts, simplices, timeList);
         generateProperty(vertexId2Label);
     }
 
@@ -86,7 +89,7 @@ public class AssembleDataHandler {
 
     private static void generateProperty(Map<String, String> vertexId2Label) {
         BufferedWriter writer;
-        int[] nProperty = {1, 3, 5};
+        int[] nProperty = {1,2,3,4,5,6};
 
         try {
 

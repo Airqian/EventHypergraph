@@ -1,4 +1,4 @@
-package com.eventhypergraph.dataSetHandler;
+package com.eventhypergraph.DataHandler.shoppingDataHandler;
 
 
 public class FilePathConstants {

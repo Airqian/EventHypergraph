@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
-import static com.eventhypergraph.dataSetHandler.FilePathConstants.SHOPPIONG_EVENT_IOFO;
+import static com.eventhypergraph.DataHandler.shoppingDataHandler.FilePathConstants.SHOPPIONG_EVENT_IOFO;
 
 /**
  * 按时间段、用户组织事件，对于给定的时间段和用户id，事件列表按时间进行排序

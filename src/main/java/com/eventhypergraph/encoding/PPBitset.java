@@ -165,21 +165,21 @@ public class PPBitset extends BitSet implements Comparable<PPBitset> {
      * @param bitset
      * @return
      */
-    public PPBitset or(PPBitset bitset) {
+    public void or(PPBitset bitset) {
         if (this == bitset)
-            return this;
+            return;
         if (this.length() != bitset.length())
             throw new IllegalArgumentException("The encoding lengths of the two are not equal, unable to perform OR operation.");
 
-        PPBitset newbitSet = new PPBitset(maxBitsInUse);
+//        PPBitset newbitSet = new PPBitset(maxBitsInUse);
         for (int i = 0; i < maxBitsInUse; i++) {
             boolean bit1 = this.get(i);
             boolean bit2 = bitset.get(i);
-            if(bit1 || bit2)
-                newbitSet.set(i, true);
+            if (bit1 || bit2)
+                this.set(i, true);
         }
 
-        return newbitSet;
+//        return newbitSet;
     }
 
     /**
@@ -197,7 +197,7 @@ public class PPBitset extends BitSet implements Comparable<PPBitset> {
         for (int i = 0; i < maxBitsInUse; i++) {
             boolean bit1 = this.get(i);
             boolean bit2 = bitset.get(i);
-            if (bit1 & bit2 != bit1)
+            if ((bit1 & bit2) != bit1)
                 return false;
         }
         return true;

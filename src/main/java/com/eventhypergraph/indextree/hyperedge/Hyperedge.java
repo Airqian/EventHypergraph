@@ -10,37 +10,25 @@ public class Hyperedge {
     // 数据超边的id从数据集中获取，派生超边的id需要生成
     private long id;
 
-    // 事件类型id
-    private int eventTypeId;
-
     // 该事件超边包含的顶点数
-    private int numOfVertex;
+//    private int numOfVertex;
 
     private int encodingLength;
 
     private PPBitset encoding;
 
+    public Hyperedge(){}
 
-    // 此构造方法用于Hyperedge#clone()方法以及节点的topHyperedge的initial方法
+    // 此构造方法用于Hyperedge#clone()方法、topHyperedge的initial方法以及构建查询超边
     public Hyperedge(int encodingLength) {
         this.id = IdUtil.getSnowflakeNextId();
-        this.numOfVertex = Integer.MAX_VALUE;
-        this.encodingLength = encodingLength;
-        this.encoding = new PPBitset(encodingLength);
-    }
-
-    // 构造查询超边时会用到
-    public Hyperedge(int numOfVertex, int encodingLength) {
-        this.id = IdUtil.getSnowflakeNextId();
-        this.numOfVertex = numOfVertex;
         this.encodingLength = encodingLength;
         this.encoding = new PPBitset(encodingLength);
     }
 
     // 读取数据集构建超边时会用到
-    public Hyperedge(long id, int numOfVertex, int encodingLength) {
+    public Hyperedge(long id, int encodingLength) {
         this.id = id;
-        this.numOfVertex = numOfVertex;
         this.encodingLength = encodingLength;
         this.encoding = new PPBitset(encodingLength);
     }

@@ -39,11 +39,6 @@ public class HyperedgeEncoding {
         return bitset.and(another);
     }
 
-    public PPBitset orOperation(int index, PPBitset another) {
-        PPBitset bitset = propertyBitsets.get(index);
-        return bitset.or(another);
-    }
-
     public int cardinality(int index) {
         return propertyBitsets.get(index).cardinality();
     }

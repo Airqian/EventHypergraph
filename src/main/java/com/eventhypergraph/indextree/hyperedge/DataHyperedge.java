@@ -19,20 +19,24 @@ public class DataHyperedge extends Hyperedge implements Comparable<DataHyperedge
     // 超边包含的顶点id
     private List<Long> vertexIds;
 
-    // 构造查询超边时会用到
-    public DataHyperedge(long eventTime, int numOfVertex, int encodingLength) {
-        super(numOfVertex, encodingLength);
+    // 根据数据集构建查询超边时会用到构造查询超边时会用到
+    public DataHyperedge(long eventTime, int encodingLength) {
+        super(encodingLength);
 
         this.eventTime = eventTime;
         vertexIds = new ArrayList<>();
     }
 
     // 读取数据集构建树时会遇到
-    public DataHyperedge(long id, long eventTime, int numOfVertex, int encodingLength) {
-        super(id, numOfVertex, encodingLength);
+    public DataHyperedge(long id, long eventTime, int encodingLength) {
+        super(id, encodingLength);
 
         this.eventTime = eventTime;
         vertexIds = new ArrayList<>();
+    }
+
+    public void addVertexId(long vertexId) {
+        this.vertexIds.add(vertexId);
     }
 
     // 计算与给定超边之间的权重增量
